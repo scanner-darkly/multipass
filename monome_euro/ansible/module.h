@@ -52,3 +52,4 @@ const u8 _hardware_gate_output_pins[_HARDWARE_GATE_OUTPUT_COUNT] =
 // other
 
 #define _HARDWARE_LED_COUNT 1
+#define _HARDWARE_SCREEN 0

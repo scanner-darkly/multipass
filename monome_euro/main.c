@@ -998,15 +998,15 @@ void front_button_hold_callback(void* o) {
 // monome/ftdi handlers
 
 static void monome_poll_callback(void* obj) {
-	ftdi_read();
+    ftdi_read();
 }
 
 static void monome_refresh_callback(void* obj) {
-	if (monome_dirty) {
-		static event_t e;
-		e.type = kEventMonomeRefresh;
-		event_post(&e);
-	}
+    if (monome_dirty) {
+        static event_t e;
+        e.type = kEventMonomeRefresh;
+        event_post(&e);
+    }
 }
 
 static void handler_ftdi_connect(s32 data) {
@@ -1014,8 +1014,8 @@ static void handler_ftdi_connect(s32 data) {
 }
 
 static void handler_ftdi_disconnect(s32 data) {
-	timer_remove(&monome_poll_timer );
-	timer_remove(&monome_refresh_timer );
+    timer_remove(&monome_poll_timer );
+    timer_remove(&monome_refresh_timer );
     timer_remove(&grid_hold_timer);
     
     u8 is_grid = grid.connected;
@@ -1042,8 +1042,8 @@ static void handler_monome_connect(s32 data) {
         control_event(GRID_CONNECTED, d, 1);
     }
     monome_dirty = 1;
-	timer_add(&monome_poll_timer, MONOME_POLL_INTERVAL, &monome_poll_callback, NULL );
-	timer_add(&monome_refresh_timer, MONOME_REFRESH_INTERVAL, &monome_refresh_callback, NULL );
+    timer_add(&monome_poll_timer, MONOME_POLL_INTERVAL, &monome_poll_callback, NULL );
+    timer_add(&monome_refresh_timer, MONOME_REFRESH_INTERVAL, &monome_refresh_callback, NULL );
 }
 
 static void handler_monome_poll(s32 data) {
@@ -1124,7 +1124,7 @@ static void handler_midi_disconnect(s32 data) {
 }
 
 static void handler_standard_midi_packet(s32 data) {
-	midi_packet_parse(&midi_behavior, (u32)data);
+    midi_packet_parse(&midi_behavior, (u32)data);
 }
 
 static void midi_note_on(u8 ch, u8 num, u8 vel) {
@@ -1204,7 +1204,6 @@ static void process_hid(void) {
     const u8 size = hid_get_frame_size();
     u16 value;
     s16 delta;
-    u8 mod_key;
     
     if (hid.device == hid_shnth) {
         
@@ -1244,7 +1243,6 @@ static void process_hid(void) {
             bit = 1 << i;
             if ((frame[7] & bit) != (hid.frame[7] & bit)) {
                 u8 d[] = { i, frame[7] & bit };
-                if (d[1]) _print_s16_var("WTF PRESSED", i); else _print_s16_var("WTF RELEASE", i); 
                 control_event(SHNTH_BUTTON, d, 2);
             }
         }
@@ -1489,12 +1487,14 @@ static void init(void) {
     
     // screen
     
-    for (u8 i = 0; i < SCREEN_LINE_COUNT; i++) {
-        screen_lines[i].w = 128;
-        screen_lines[i].h = 8;
-        screen_lines[i].x = 0;
-        screen_lines[i].y = i << 3;
-        region_alloc(&screen_lines[i]);
+    if (_HARDWARE_SCREEN) {
+        for (u8 i = 0; i < SCREEN_LINE_COUNT; i++) {
+            screen_lines[i].w = 128;
+            screen_lines[i].h = 8;
+            screen_lines[i].x = 0;
+            screen_lines[i].y = i << 3;
+            region_alloc(&screen_lines[i]);
+        }
     }
 }
 
@@ -1516,7 +1516,7 @@ int main(void) {
     setup_dacs();    
     init_usb_host();
     init_monome();
-    init_oled();
+    if (_HARDWARE_SCREEN) init_oled();
     process_ii = &process_i2c;
 
     init();
