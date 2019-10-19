@@ -30,6 +30,14 @@
 #include "string.h"
 #include "sysclk.h"
 
+#include "uhi_msc.h"
+#include "fat.h"
+#include "file.h"
+#include "fs_com.h"
+#include "navigation.h"
+#include "usb_protocol_msc.h"
+#include "uhi_msc_mem.h"
+
 // skeleton
 #include "types.h"
 #include "events.h"
@@ -82,7 +90,6 @@
 #define MAX_GATE_COUNT 8
 
 #define FIRSTRUN_KEY 0x22
-#define PRESET_COUNT 8
 #define TIMED_EVENT_COUNT 100
 
 #define ET_NOTE_COUNT 120 // ET is defined in music.h
@@ -648,6 +655,80 @@ void load_shared_data_from_flash(shared_data_t *shared) {
     memcpy(shared, &flash.shared, sizeof(shared_data_t));
 }
 
+// usb
+
+uint8_t load_from_usb(char *filename, serialize_callback_t serializer) {
+    return 1;
+}
+
+uint8_t save_to_usb(char *filename, bool autoname, int maxcount, serialize_callback_t serializer) {
+    uint8_t exit, max_lun = 16;
+    char str[512];
+    /*
+    max_lun = uhi_msc_mem_get_lun();
+    if (max_lun < 1) max_lun = 1;
+    if (max_lun > 16) max_lun = 16;
+    */
+    
+    for (uint8_t lun = 0; lun < max_lun; lun++) {
+        delay_ms(100);
+        // _print_s16_var("lun: ", lun);
+        
+        // mount drive
+        nav_drive_set(lun);
+        if (!nav_partition_mount()) {
+            // _print_str("1");
+            if (fs_g_status == FS_ERR_HW_NO_PRESENT) {
+                // _print_str("2");
+                continue;
+            }
+            // _print_s16_var("3, status: ", fs_g_status);
+            continue;
+        }
+
+        // _print_str("4");
+        
+        if (autoname) {
+            exit = 0;
+            for (uint8_t i = 0; i < maxcount; i++) {
+                filename[6] = '0' + i; // FIXME!!!
+                if (nav_file_create((FS_STRING)filename)) break;
+                if (fs_g_status == FS_ERR_FILE_EXIST) continue;
+                if (fs_g_status == FS_LUN_WP) {
+                    // _print_str("5 \r\n");
+                } else {
+                    // _print_s16_var("6, status: ", fs_g_status);
+                }
+                exit = 1;
+                break;
+            }
+            if (exit) continue;
+        }
+        
+        if (!file_open(FOPEN_MODE_W)) {
+            if (fs_g_status == FS_LUN_WP) {
+                // _print_str("7");
+            } else {
+                // _print_s16_var("8, status: ", fs_g_status);
+            }
+            continue;
+        }
+
+        // _print_str("9");
+        
+        while (serializer(str)) {
+            file_write_buf((uint8_t*)str, strlen(str));
+            file_putc('\n');
+        }
+        
+        file_close();
+        nav_filelist_reset();
+        nav_exit();
+    }
+    
+    return 1;
+}
+    
 // other
 
 void set_led(u8 index, u8 level) {
@@ -925,10 +1006,10 @@ static void poll_inputs(void) {
         event_post(&e);
     }
     
-	if(front_button_pressed != !gpio_get_pin_value(NMI)) {
-		event_t e = { .type = kEventFront, .data = gpio_get_pin_value(NMI) };
-		event_post(&e);
-	}
+    if(front_button_pressed != !gpio_get_pin_value(NMI)) {
+        event_t e = { .type = kEventFront, .data = gpio_get_pin_value(NMI) };
+        event_post(&e);
+    }
 }
 
 
@@ -962,15 +1043,15 @@ void front_button_hold_callback(void* o) {
 // monome/ftdi handlers
 
 static void monome_poll_callback(void* obj) {
-	ftdi_read();
+    ftdi_read();
 }
 
 static void monome_refresh_callback(void* obj) {
-	if (monome_dirty) {
-		static event_t e;
-		e.type = kEventMonomeRefresh;
-		event_post(&e);
-	}
+    if (monome_dirty) {
+        static event_t e;
+        e.type = kEventMonomeRefresh;
+        event_post(&e);
+    }
 }
 
 static void handler_ftdi_connect(s32 data) {
@@ -978,8 +1059,8 @@ static void handler_ftdi_connect(s32 data) {
 }
 
 static void handler_ftdi_disconnect(s32 data) {
-	timer_remove(&monome_poll_timer );
-	timer_remove(&monome_refresh_timer );
+    timer_remove(&monome_poll_timer );
+    timer_remove(&monome_refresh_timer );
     timer_remove(&grid_hold_timer);
     
     u8 is_grid = grid.connected;
@@ -1006,8 +1087,8 @@ static void handler_monome_connect(s32 data) {
         control_event(GRID_CONNECTED, d, 1);
     }
     monome_dirty = 1;
-	timer_add(&monome_poll_timer, MONOME_POLL_INTERVAL, &monome_poll_callback, NULL );
-	timer_add(&monome_refresh_timer, MONOME_REFRESH_INTERVAL, &monome_refresh_callback, NULL );
+    timer_add(&monome_poll_timer, MONOME_POLL_INTERVAL, &monome_poll_callback, NULL );
+    timer_add(&monome_refresh_timer, MONOME_REFRESH_INTERVAL, &monome_refresh_callback, NULL );
 }
 
 static void handler_monome_poll(s32 data) {
@@ -1088,7 +1169,7 @@ static void handler_midi_disconnect(s32 data) {
 }
 
 static void handler_standard_midi_packet(s32 data) {
-	midi_packet_parse(&midi_behavior, (u32)data);
+    midi_packet_parse(&midi_behavior, (u32)data);
 }
 
 static void midi_note_on(u8 ch, u8 num, u8 vel) {
@@ -1216,7 +1297,10 @@ static void process_hid(void) {
 // i2c handlers
 
 static void process_i2c(uint8_t *data, uint8_t length) {
-    control_event(I2C_RECEIVED, data, length);
+    u8 d[length + 1];
+    d[0] = length;
+    memcpy(&d[1], data, length);
+    control_event(I2C_RECEIVED, d, length);
 }
 
 static void refresh_i2c(void) {
@@ -1258,7 +1342,7 @@ static inline void assign_main_event_handlers(void) {
     app_event_handlers[kEventFtdiDisconnect]   = &handler_ftdi_disconnect;
     app_event_handlers[kEventMonomeConnect]    = &handler_monome_connect;
     app_event_handlers[kEventMonomeDisconnect] = &handler_none;
-    app_event_handlers[kEventMonomeRefresh]	   = &handler_monome_refresh;
+    app_event_handlers[kEventMonomeRefresh]    = &handler_monome_refresh;
     app_event_handlers[kEventMonomePoll]       = &handler_monome_poll;
     app_event_handlers[kEventMonomeGridKey]    = &handler_monome_grid_key;
     app_event_handlers[kEventMonomeRingEnc]    = &handler_monome_ring_enc;

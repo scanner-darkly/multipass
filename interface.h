@@ -29,7 +29,7 @@
 // ----------------------------------------------------------------------------
 // events (comments describe data[] passed to process_hardware_event)
 
-#define TIMED_EVENT             0x00 // high value byte, low value byte
+#define TIMED_EVENT             0x00 // index
 #define MAIN_CLOCK_RECEIVED     0x01 // external, phase
 #define MAIN_CLOCK_SWITCHED     0x02 // external
 #define GATE_RECEIVED           0x03 // index, phase
@@ -38,7 +38,7 @@
 #define FRONT_BUTTON_HELD       0x11 // -
 #define BUTTON_PRESSED          0x12 // index, pressed/released
 
-#define I2C_RECEIVED            0x30 // i2c data
+#define I2C_RECEIVED            0x30 // i2c length, data
 
 #define GRID_CONNECTED          0x40 // connected/disconnected
 #define GRID_KEY_PRESSED        0x41 // x, y, pressed
@@ -182,6 +182,14 @@ void store_shared_data_to_flash(shared_data_t *shared);
 void load_preset_from_flash(uint8_t index, preset_data_t *preset);
 void load_preset_meta_from_flash(uint8_t index, preset_meta_t *meta);
 void load_shared_data_from_flash(shared_data_t *shared);
+
+
+// ----------------------------------------------------------------------------
+// usb storage
+
+typedef int (*serialize_callback_t)(char*);
+uint8_t load_from_usb(char *filename, serialize_callback_t serializer);
+uint8_t save_to_usb(char *filename, bool autoname, int maxcount, serialize_callback_t serializer);
 
 
 // ----------------------------------------------------------------------------
