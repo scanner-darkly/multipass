@@ -1201,7 +1201,6 @@ static void process_hid(void) {
     if (!hid.connected) return;
     
     const s8* frame = (const s8*)hid_get_frame_data();
-    const u8 size = hid_get_frame_size();
     u16 value;
     s16 delta;
     
