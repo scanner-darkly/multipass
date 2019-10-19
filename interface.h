@@ -52,10 +52,13 @@
 #define MIDI_CC                 0x52 // channel, cc, value (0..127)
 #define MIDI_AFTERTOUCH         0x53 // channel, note, value
 
-#define SHNTH_CONNECTED         0x60 // connected/disconnected
-#define SHNTH_BAR               0x61 // bar, pressure (0..255)
-#define SHNTH_ANTENNA           0x62 // antenna, pressure (0..255)
-#define SHNTH_BUTTON            0x63 // index, pressed
+#define KEYBOARD_CONNECTED      0x60 // connected/disconnected
+#define KEYBOARD_KEY            0x61 // mod, key, pressed/released
+
+#define SHNTH_CONNECTED         0x62 // connected/disconnected
+#define SHNTH_BAR               0x63 // bar, pressure (0..255)
+#define SHNTH_ANTENNA           0x64 // antenna, pressure (0..255)
+#define SHNTH_BUTTON            0x65 // index, pressed/released
 
 
 // ----------------------------------------------------------------------------
@@ -182,6 +185,15 @@ void store_shared_data_to_flash(shared_data_t *shared);
 void load_preset_from_flash(uint8_t index, preset_data_t *preset);
 void load_preset_meta_from_flash(uint8_t index, preset_meta_t *meta);
 void load_shared_data_from_flash(shared_data_t *shared);
+
+
+// ----------------------------------------------------------------------------
+// screen
+
+void clear_screen(void);
+void fill_line(uint8_t line, uint8_t colour);
+void draw_str(const char* str, uint8_t line, uint8_t colour, uint8_t background);
+void refresh_screen(void);
 
 
 // ----------------------------------------------------------------------------

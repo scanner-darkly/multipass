@@ -43,6 +43,7 @@ const u8 _hardware_clock_output_pin;
 #define _HARDWARE_CV_DAISY_CHAINED 1
 
 #define _HARDWARE_GATE_OUTPUT_COUNT 1
+#define _HARDWARE_GATE_OUTPUT_PIN 0
 const u8 _hardware_gate_output_pins[_HARDWARE_GATE_OUTPUT_COUNT] = { B00 };
 
 

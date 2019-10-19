@@ -37,17 +37,17 @@
 
 
 # project name
-THIS = multipass_mp
+THIS = multipass_tt
 
 # Path to top level ASF directory relative to this project directory.
 PRJ_PATH = ../libavr32/asf
 
 # Target CPU architecture: ap, ucr1, ucr2 or ucr3
-ARCH = ucr1
+ARCH = ucr2
 
 # Target part: none, ap7xxx or uc3xxxxx
 # PART = uc3b064
-PART = uc3b0256
+PART = uc3b0512
 
 # Target device flash memory details (used by the avr32program programming
 # tool: [cfi|internal]@address
@@ -68,18 +68,24 @@ CSRCS = \
        ../libavr32/src/adc.c               \
        ../libavr32/src/dac.c               \
        ../libavr32/src/events.c            \
+       ../libavr32/src/fix.c               \
+       ../libavr32/src/font.c              \
        ../libavr32/src/i2c.c               \
        ../libavr32/src/init_common.c       \
        ../libavr32/src/interrupts.c        \
+       ../libavr32/src/kbd.c               \
        ../libavr32/src/midi_common.c       \
        ../libavr32/src/monome.c            \
        ../libavr32/src/music.c             \
        ../libavr32/src/notes.c             \
        ../libavr32/src/random.c            \
+       ../libavr32/src/region.c            \
        ../libavr32/src/screen.c            \
        ../libavr32/src/timers.c            \
        ../libavr32/src/usb.c               \
        ../libavr32/src/util.c              \
+       ../libavr32/src/usb/cdc/cdc.c       \
+       ../libavr32/src/usb/cdc/uhi_cdc.c   \
        ../libavr32/src/usb/ftdi/ftdi.c     \
        ../libavr32/src/usb/ftdi/uhi_ftdi.c \
        ../libavr32/src/usb/hid/hid.c       \
@@ -99,7 +105,12 @@ CSRCS = \
        avr32/drivers/twi/twi.c                            \
        avr32/drivers/usart/usart.c                        \
        avr32/drivers/usbb/usbb_host.c                     \
+       avr32/services/fs/fat/fat.c                        \
+       avr32/services/fs/fat/fat_unusual.c                \
+       avr32/services/fs/fat/file.c                       \
+       avr32/services/fs/fat/navigation.c                 \
        avr32/utils/debug/print_funcs.c                    \
+       common/services/storage/ctrl_access/ctrl_access.c  \
        common/services/usb/class/msc/host/uhi_msc.c       \
        common/services/usb/class/msc/host/uhi_msc_mem.c   \
        common/services/spi/uc3_spi/spi_master.c           \
@@ -114,17 +125,18 @@ ASSRCS = \
 
 # List of include paths.
 INC_PATH = \
-       ../../meadowphysics                                \
+       ../../teletype                                      \
        ../../..                                           \
        ../../../../src                                    \
        ../src                                             \
        ../src/usb                                         \
+       ../src/usb/cdc                                     \
        ../src/usb/ftdi                                    \
        ../src/usb/hid                                     \
        ../src/usb/midi                                    \
        ../src/usb/msc                                     \
        ../conf                                            \
-       ../conf/trilogy                                    \
+       ../conf/teletype                                   \
        avr32/boards                                       \
        avr32/drivers/cpu/cycle_counter                    \
        avr32/drivers/flashc                               \
@@ -139,6 +151,7 @@ INC_PATH = \
        avr32/utils                                        \
        avr32/utils/debug                                  \
        avr32/utils/preprocessor                           \
+       avr32/services/fs/fat                              \
        common/boards                                      \
        common/boards/user_board                           \
        common/services/storage/ctrl_access                \
@@ -161,7 +174,7 @@ LIBS =
 # Path relative to top level directory pointing to a linker script.
 # LINKER_SCRIPT = avr32/utils/linker_scripts/at32uc3b/0256/gcc/link_uc3b0256.lds
 # LINKER_SCRIPT = avr32/drivers/flashc/flash_example/at32uc3b0256_evk1101/link_uc3b0256.lds
-LINKER_SCRIPT = ../src/link_uc3b0256.lds
+LINKER_SCRIPT = ../src/link_uc3b0512.lds
 
 
 # Additional options for debugging. By default the common Makefile.in will

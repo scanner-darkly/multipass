@@ -47,6 +47,9 @@
 #include "twi.h"
 #include "dac.h"
 #include "interrupts.h"
+#include "font.h"
+#include "screen.h"
+#include "region.h"
 
 // this
 #include "conf_board.h"
@@ -84,6 +87,7 @@
 #define FIRSTRUN_KEY 0x22
 #define PRESET_COUNT 8
 #define TIMED_EVENT_COUNT 100
+#define SCREEN_LINE_COUNT 8
 
 #define ET_NOTE_COUNT 120 // ET is defined in music.h
 #define MAX_VOICES_COUNT 80
@@ -136,6 +140,8 @@ static struct hid_data_t {
     u8 connected;
     hid_devices device;
     u8 frame[HID_FRAME_MAX_BYTES];
+    u8 mod_key;
+    u8 key;
     u8 shnth_init_bars;
     u8 shnth_init_antennas;
     s8 shnth_bars[SHNTH_BAR_COUNT];
@@ -155,6 +161,8 @@ static u8 _debug = 0;
 static u8 control_initialized;
 
 static u8 adc_timer, hid_poll_timer, inputs_poll_timer, i2c_refresh_timer, midi_poll_timer;
+
+static region screen_lines[SCREEN_LINE_COUNT];
 
 static u8 monome_dirty;
 static softTimer_t monome_poll_timer, monome_refresh_timer;
@@ -648,6 +656,27 @@ void load_shared_data_from_flash(shared_data_t *shared) {
     memcpy(shared, &flash.shared, sizeof(shared_data_t));
 }
 
+// screen
+
+void clear_screen() {
+    for (u8 i = 0; i < SCREEN_LINE_COUNT; i++) region_fill(&screen_lines[i], 0);
+}
+
+void fill_line(uint8_t line, uint8_t colour) {
+    if (line >= SCREEN_LINE_COUNT) return;
+    region_fill(&screen_lines[line], colour);
+}
+
+void draw_str(const char* str, uint8_t line, uint8_t colour, uint8_t background) {
+    if (line >= SCREEN_LINE_COUNT) return;
+    region_fill(&screen_lines[line], 0);
+    font_string_region_clip(&screen_lines[line], str, 0, 0, colour, background);
+}
+
+void refresh_screen() {
+    for (u8 i = 0; i < SCREEN_LINE_COUNT; i++) region_draw(&screen_lines[i]);
+}
+
 // other
 
 void set_led(u8 index, u8 level) {
@@ -749,10 +778,17 @@ void _set_cv(u8 output, s16 value) {
 
 void _set_gate(u8 output, u8 on) {
     if (output >= _HARDWARE_GATE_OUTPUT_COUNT || output >= MAX_GATE_COUNT) return;
-    if (on)
-        gpio_set_gpio_pin(_hardware_gate_output_pins[output]);
-    else
-        gpio_clr_gpio_pin(_hardware_gate_output_pins[output]);
+    if (on) {
+        if (_HARDWARE_GATE_OUTPUT_PIN)
+            gpio_set_pin_high(_hardware_gate_output_pins[output]);
+        else
+            gpio_set_gpio_pin(_hardware_gate_output_pins[output]);
+    } else {
+        if (_HARDWARE_GATE_OUTPUT_PIN)
+            gpio_set_pin_low(_hardware_gate_output_pins[output]);
+        else
+            gpio_clr_gpio_pin(_hardware_gate_output_pins[output]);
+    }
 }
 
 void _set_i2c_mode(u8 leader) {
@@ -920,15 +956,15 @@ static void poll_inputs(void) {
         }
     }
     
-    if(external_clock_connected != !gpio_get_pin_value(_hardware_clock_detect_pin)) {
+    if(_HARDWARE_CLOCK_INPUT && external_clock_connected != !gpio_get_pin_value(_hardware_clock_detect_pin)) {
         event_t e = { .type = kEventClockNormal };
         event_post(&e);
     }
     
-	if(front_button_pressed != !gpio_get_pin_value(NMI)) {
-		event_t e = { .type = kEventFront, .data = gpio_get_pin_value(NMI) };
-		event_post(&e);
-	}
+    if(front_button_pressed != !gpio_get_pin_value(NMI)) {
+        event_t e = { .type = kEventFront, .data = gpio_get_pin_value(NMI) };
+        event_post(&e);
+    }
 }
 
 
@@ -1117,19 +1153,21 @@ static void midi_aftertouch(u8 ch, u8 num, u8 val) {
 
 static void handler_hid_connect(int32_t data) {
     hid.connected = 1;
+    u8 d[] = { 1 };
 
     uhc_device_t* dev = (uhc_device_t*)(data);
     
     if (dev->dev_desc.idProduct == 0x6666) {
         hid.device = hid_shnth;
-        u8 d[] = { 1 };
         control_event(SHNTH_CONNECTED, d, 1);
-    } else if (dev->dev_desc.idVendor == 0x4C05)
+        hid.shnth_init_bars = hid.shnth_init_antennas = 1;
+    } else if (dev->dev_desc.idVendor == 0x4C05) {
         hid.device = hid_ps3;
-    else
+    } else {
         hid.device = hid_keyboard;
-    
-    hid.shnth_init_bars = hid.shnth_init_antennas = 1;
+        hid.mod_key = hid.key = 0;
+        control_event(KEYBOARD_CONNECTED, d, 1);
+    }
     
     if (_debug) {
         _print_str("\r\n");
@@ -1151,9 +1189,11 @@ static void handler_hid_connect(int32_t data) {
 
 static void handler_hid_disconnect(int32_t data) {
     hid.connected = 0;
+    u8 d[] = { 0 };
     if (hid.device == hid_shnth) {
-        u8 d[] = { 0 };
         control_event(SHNTH_CONNECTED, d, 1);
+    } else {
+        control_event(KEYBOARD_CONNECTED, d, 1);
     }
 }
 
@@ -1164,6 +1204,7 @@ static void process_hid(void) {
     const u8 size = hid_get_frame_size();
     u16 value;
     s16 delta;
+    u8 mod_key;
     
     if (hid.device == hid_shnth) {
         
@@ -1208,6 +1249,25 @@ static void process_hid(void) {
             }
         }
         hid.frame[7] = frame[7];
+    }
+    
+    else if (hid.device == hid_keyboard) {
+        hid.mod_key = frame[0];
+        for (u8 i = 2; i < 8; i++) {
+            if (frame[i] == 0) {
+                if (i == 2) {
+                    u8 d[] = { hid.mod_key, hid.key, 0 };
+                    control_event(KEYBOARD_KEY, d, 3);
+                    hid.key = 0;
+                }
+            }
+            else if (hid.frame[i] != frame[i]) {
+                hid.key = frame[i];
+                u8 d[] = { hid.mod_key, hid.key, 1 };
+                control_event(KEYBOARD_KEY, d, 3);
+            }
+            hid.frame[i] = frame[i];
+        }
     }
 }
 
@@ -1258,7 +1318,7 @@ static inline void assign_main_event_handlers(void) {
     app_event_handlers[kEventFtdiDisconnect]   = &handler_ftdi_disconnect;
     app_event_handlers[kEventMonomeConnect]    = &handler_monome_connect;
     app_event_handlers[kEventMonomeDisconnect] = &handler_none;
-    app_event_handlers[kEventMonomeRefresh]	   = &handler_monome_refresh;
+    app_event_handlers[kEventMonomeRefresh]    = &handler_monome_refresh;
     app_event_handlers[kEventMonomePoll]       = &handler_monome_poll;
     app_event_handlers[kEventMonomeGridKey]    = &handler_monome_grid_key;
     app_event_handlers[kEventMonomeRingEnc]    = &handler_monome_ring_enc;
@@ -1426,6 +1486,16 @@ static void init(void) {
     is_i2c_leader = 0;
     i2c_follower_address = 0;
     jf_mode = 0;
+    
+    // screen
+    
+    for (u8 i = 0; i < SCREEN_LINE_COUNT; i++) {
+        screen_lines[i].w = 128;
+        screen_lines[i].h = 8;
+        screen_lines[i].x = 0;
+        screen_lines[i].y = i << 3;
+        region_alloc(&screen_lines[i]);
+    }
 }
 
 int main(void) {
@@ -1446,6 +1516,7 @@ int main(void) {
     setup_dacs();    
     init_usb_host();
     init_monome();
+    init_oled();
     process_ii = &process_i2c;
 
     init();
