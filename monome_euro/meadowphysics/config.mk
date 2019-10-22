@@ -76,7 +76,6 @@ CSRCS = \
        ../libavr32/src/music.c             \
        ../libavr32/src/notes.c             \
        ../libavr32/src/random.c            \
-       ../libavr32/src/screen.c            \
        ../libavr32/src/timers.c            \
        ../libavr32/src/usb.c               \
        ../libavr32/src/util.c              \
