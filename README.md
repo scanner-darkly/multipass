@@ -32,4 +32,10 @@ the main components are:
 
 at this point if you have the toolchain properly set up it should build a hex firmware file succesfully. **important**: if you want to build for a different module make sure to remove all `*.d` and `*.o` files first.
 
-now build your app by modifying `control.c`. you can use this app as a sample: https://github.com/scanner-darkly/multipass-simple
+now build your app by modifying `control.c`. 
+
+for some simple app examples checkout:
+
+- simple app (translates MIDI notes to CV/gates): https://github.com/scanner-darkly/multipass-simple
+- shtnh control app (uses shnth as a controller to generate CV/gates): https://github.com/scanner-darkly/multipass-shnth
+
