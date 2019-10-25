@@ -96,6 +96,7 @@
 #define MAX_JF_VOICE_COUNT 6
 #define MAX_ER301_VOICE_COUNT 16
 #define MAX_ER301_OUTPUT_COUNT 100
+#define MAX_TXI_COUNT 16
 
 #define TO_TR 0x00
 #define TO_CV_SET 0x11
@@ -179,7 +180,6 @@ static u16 adc_values[ADC_COUNT];
 static u8 front_button_pressed;
 static u8 button_pressed[_HARDWARE_BUTTON_COUNT];
 
-static s16 cv_input_values[_HARDWARE_CV_INPUT_COUNT];
 static u8 gate_input_values[_HARDWARE_GATE_INPUT_COUNT];
 
 static s16 cv_values[MAX_CV_COUNT];
@@ -244,8 +244,10 @@ static void _set_txo_mode(u8 output, u8 mode);
 static void _set_txo_cv(u8 output, s16 value);
 static void _set_txo_gate(u8 output, u8 on);
 static void _send_txo_note(u8 output, s16 pitch, u16 volume);
+static int16_t _get_txi_value(u8 index, bool shift);
 
 static int _i2c_master_tx(uint8_t addr, uint8_t *data, uint8_t length);
+static int _i2c_master_rx(uint8_t addr, uint8_t *data, uint8_t length);
 static void _set_i2c_mode(u8 leader);
 
 
@@ -322,8 +324,8 @@ u8 get_cv_input_count() {
 }
 
 s16 get_cv(u8 index) {
-    if (index >= _HARDWARE_CV_INPUT_COUNT) return 0;
-    return cv_input_values[index];
+    if (index >= _HARDWARE_CV_INPUT_COUNT || index >= ADC_COUNT) return 0;
+    return adc_values[_hardware_cv_input_ids[index]] << 2;
 }
 
 u8 get_gate_input_count() {
@@ -736,6 +738,11 @@ int _i2c_master_tx(u8 addr, u8 *data, u8 length) {
     return i2c_master_tx(addr, data, length);
 }
 
+int _i2c_master_rx(uint8_t addr, uint8_t *data, uint8_t l) {
+    if (!is_i2c_leader) return 0;
+    return i2c_master_rx(addr, data, l);
+}
+
 void _send_note(u8 output, s16 pitch, u16 volume) {
     // boundaries will be enforced by _set_cv and _set_gate
     if (volume) {
@@ -914,6 +921,34 @@ void _set_txo_gate(u8 output, u8 on) {
     
     _send_txo_command(output, TO_ENV, 0);
     _send_txo_command(output, TO_TR, on & 1);
+}
+
+int16_t _get_txi_value(uint8_t index, bool shift) {
+    // send request to read
+    uint8_t port = index & 3;
+    uint8_t device = index >> 2;
+    uint8_t address = TELEXI + device;
+    port += shift ? 4 : 0;
+    uint8_t buffer[2];
+    buffer[0] = port;
+    _i2c_master_tx(address, buffer, 1);
+    
+    // now read
+    buffer[0] = 0;
+    buffer[1] = 0;
+    _i2c_master_rx(address, buffer, 2);
+    return (buffer[0] << 8) + buffer[1];
+}
+
+int16_t get_txi_input(uint8_t input) {
+    if (input >= MAX_TXI_COUNT) return 0;
+    return _get_txi_value(input, true);
+}
+
+uint16_t get_txi_param(uint8_t param) {
+    if (param >= MAX_TXI_COUNT) return 0;
+    // shift to bring it to same range as get_knob_value
+    return _get_txi_value(param, false) << 2;
 }
 
 
@@ -1390,9 +1425,6 @@ static void init(void) {
 
     for (u8 i = 0; i < _HARDWARE_BUTTON_COUNT; i++)
         button_pressed[i] = !gpio_get_pin_value(_hardware_button_pins[i]);
-    
-    for (u8 i = 0; i < _HARDWARE_CV_INPUT_COUNT; i++)
-        cv_input_values[i] = 0;
     
     for (u8 i = 0; i < _HARDWARE_GATE_INPUT_COUNT; i++)
         gate_input_values[i] = 0;

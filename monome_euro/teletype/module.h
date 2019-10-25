@@ -11,7 +11,7 @@
 // knobs
 
 #define _HARDWARE_KNOB_COUNT 1
-const u8 _hardware_knob_ids[_HARDWARE_KNOB_COUNT] = { 0 };
+const u8 _hardware_knob_ids[_HARDWARE_KNOB_COUNT] = { 1 };
 
 
 // ----------------------------------------------------------------------------
@@ -27,6 +27,8 @@ const u8 _hardware_button_pins[_HARDWARE_BUTTON_COUNT] = { };
 #define _POLL_INPUTS 1
 
 #define _HARDWARE_CV_INPUT_COUNT 1
+const u8 _hardware_cv_input_ids[_HARDWARE_CV_INPUT_COUNT] = { 0 };
+
 #define _HARDWARE_GATE_INPUT_COUNT 8
 
 #define _HARDWARE_CLOCK_INPUT 0

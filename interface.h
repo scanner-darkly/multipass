@@ -170,6 +170,9 @@ void set_txo_attack(uint8_t output, uint16_t attack);
 void set_txo_decay(uint8_t output, uint16_t decay);
 void set_txo_waveform(uint8_t output, uint16_t waveform);
 
+int16_t get_txi_input(uint8_t input);
+uint16_t get_txi_param(uint8_t param);
+
 
 // ----------------------------------------------------------------------------
 // flash storage
