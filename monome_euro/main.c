@@ -661,21 +661,25 @@ void load_shared_data_from_flash(shared_data_t *shared) {
 // screen
 
 void clear_screen() {
+    if (_HARDWARE_SCREEN == 0) return;
     for (u8 i = 0; i < SCREEN_LINE_COUNT; i++) region_fill(&screen_lines[i], 0);
 }
 
 void fill_line(uint8_t line, uint8_t colour) {
+    if (_HARDWARE_SCREEN == 0) return;
     if (line >= SCREEN_LINE_COUNT) return;
     region_fill(&screen_lines[line], colour);
 }
 
 void draw_str(const char* str, uint8_t line, uint8_t colour, uint8_t background) {
+    if (_HARDWARE_SCREEN == 0) return;
     if (line >= SCREEN_LINE_COUNT) return;
     region_fill(&screen_lines[line], 0);
     font_string_region_clip(&screen_lines[line], str, 0, 0, colour, background);
 }
 
 void refresh_screen() {
+    if (_HARDWARE_SCREEN == 0) return;
     for (u8 i = 0; i < SCREEN_LINE_COUNT; i++) region_draw(&screen_lines[i]);
 }
 
