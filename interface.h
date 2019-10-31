@@ -66,6 +66,7 @@
 
 void add_timed_event(uint8_t index, uint16_t ms, uint8_t repeat);
 void stop_timed_event(uint8_t index);
+void update_timer_interval(uint8_t index, uint16_t ms);
 
 
 // ----------------------------------------------------------------------------

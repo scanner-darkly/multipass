@@ -299,6 +299,12 @@ void stop_timed_event(u8 index) {
     timer_remove(&event_timers[index].timer);
 }
 
+void update_timer_interval(uint8_t index, uint16_t ms) {
+    if (index > TIMED_EVENT_COUNT) return;
+
+    event_timers[index].timer.ticks = ms;
+}
+
 // clock
 
 u64 get_global_time() {
