@@ -1355,6 +1355,7 @@ static inline void assign_main_event_handlers(void) {
     app_event_handlers[kEventClockNormal]      = &handler_clock_normal;
     app_event_handlers[kEventClockExt]         = &handler_clock_ext;
     app_event_handlers[kEventTr]               = &handler_tr;
+    app_event_handlers[kEventTrigger]          = &handler_tr;
     
     app_event_handlers[kEventFtdiConnect]      = &handler_ftdi_connect;
     app_event_handlers[kEventFtdiDisconnect]   = &handler_ftdi_disconnect;
