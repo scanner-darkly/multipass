@@ -311,6 +311,10 @@ u64 get_global_time() {
     return get_ticks();
 }
 
+uint8_t has_clock_input() {
+    return _HARDWARE_CLOCK_INPUT;
+}
+
 u8 is_external_clock_connected() {
     return external_clock_connected;
 }

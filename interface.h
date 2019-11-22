@@ -73,6 +73,7 @@ void update_timer_interval(uint8_t index, uint16_t ms);
 // clock
 
 uint64_t get_global_time(void);
+uint8_t has_clock_input(void);
 uint8_t is_external_clock_connected(void);
 void set_clock_output(uint8_t on);
 
