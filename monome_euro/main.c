@@ -85,7 +85,7 @@
 #define MAX_GATE_COUNT 8
 
 #define FIRSTRUN_KEY 0x22
-#define PRESET_COUNT 8
+#define PRESET_COUNT 16
 #define TIMED_EVENT_COUNT 100
 #define SCREEN_LINE_COUNT 8
 
