@@ -17,6 +17,7 @@ const u8 _hardware_knob_ids[_HARDWARE_KNOB_COUNT] = { 1 };
 // ----------------------------------------------------------------------------
 // buttons (not including the main button, reserved for presets/global config)
 
+#define _HARDWARE_POLL_FRONT_BUTTON 0
 #define _HARDWARE_BUTTON_COUNT 0
 const u8 _hardware_button_pins[_HARDWARE_BUTTON_COUNT] = { };
 

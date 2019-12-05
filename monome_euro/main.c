@@ -71,7 +71,7 @@
 #define MONOME_REFRESH_INTERVAL 30
 #define I2C_REFRESH_INTERVAL 50
 
-#define FRONT_BUTTON_HOLD_TIME 750
+#define FRONT_BUTTON_HOLD_TIME 1200
 #define GRID_HOLD_TIME 750
 
 #define ARC_MAX_ENCODER_COUNT 4
@@ -1005,14 +1005,16 @@ static void poll_inputs(void) {
         }
     }
     
-    if(_HARDWARE_CLOCK_INPUT && external_clock_connected != !gpio_get_pin_value(_hardware_clock_detect_pin)) {
+    if (_HARDWARE_CLOCK_INPUT && external_clock_connected != !gpio_get_pin_value(_hardware_clock_detect_pin)) {
         event_t e = { .type = kEventClockNormal };
         event_post(&e);
     }
     
-    if(front_button_pressed != !gpio_get_pin_value(NMI)) {
-        event_t e = { .type = kEventFront, .data = gpio_get_pin_value(NMI) };
-        event_post(&e);
+    if (_HARDWARE_POLL_FRONT_BUTTON) {
+        if (front_button_pressed != !gpio_get_pin_value(NMI)) {
+            event_t e = { .type = kEventFront, .data = gpio_get_pin_value(NMI) };
+            event_post(&e);
+        }
     }
 }
 
