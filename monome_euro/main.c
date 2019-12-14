@@ -1419,7 +1419,7 @@ static void process_system_events(void) {
     }
 }
 
-static void init(void) {
+static void init_state(void) {
     control_initialized = 0;
     
     // timers
@@ -1433,20 +1433,6 @@ static void init(void) {
         event_timers[i].timer.prev = NULL;
     }
 
-    // inputs
-
-    if (_HARDWARE_CLOCK_INPUT) 
-        external_clock_connected = !gpio_get_pin_value(_hardware_clock_detect_pin);
-
-    adc_convert(&adc_values);
-    front_button_pressed = 0;
-
-    for (u8 i = 0; i < _HARDWARE_BUTTON_COUNT; i++)
-        button_pressed[i] = !gpio_get_pin_value(_hardware_button_pins[i]);
-    
-    for (u8 i = 0; i < _HARDWARE_GATE_INPUT_COUNT; i++)
-        gate_input_values[i] = 0;
-    
     // grid
     
     grid.connected = 0;
@@ -1486,16 +1472,6 @@ static void init(void) {
     for (u8 i = 0; i < SHNTH_ANTENNA; i++) hid.shnth_antennas[i] = 0;
     hid.shnth_init_bars = hid.shnth_init_antennas = 1;
 
-    // outputs
-    
-    for (u8 i = 0; i < min(_HARDWARE_CV_OUTPUT_COUNT, MAX_CV_COUNT); i++)
-        _set_cv(i, 0);
-    
-    for (u8 i = 0; i < min(_HARDWARE_GATE_OUTPUT_COUNT, MAX_GATE_COUNT); i++)
-        _set_gate(i, 0);
-    
-    set_clock_output(0);
-
     // voices
     
     for (u8 i = 0; i < MAX_VOICES_COUNT; i++)
@@ -1533,7 +1509,33 @@ static void init(void) {
     is_i2c_leader = 0;
     i2c_follower_address = 0;
     jf_mode = 0;
+}
+
+static void init_hardware(void) {
+    // inputs
+
+    if (_HARDWARE_CLOCK_INPUT) 
+        external_clock_connected = !gpio_get_pin_value(_hardware_clock_detect_pin);
+
+    adc_convert(&adc_values);
+    front_button_pressed = 0;
+
+    for (u8 i = 0; i < _HARDWARE_BUTTON_COUNT; i++)
+        button_pressed[i] = !gpio_get_pin_value(_hardware_button_pins[i]);
     
+    for (u8 i = 0; i < _HARDWARE_GATE_INPUT_COUNT; i++)
+        gate_input_values[i] = 0;
+    
+    // outputs
+    
+    for (u8 i = 0; i < min(_HARDWARE_CV_OUTPUT_COUNT, MAX_CV_COUNT); i++)
+        _set_cv(i, 0);
+    
+    for (u8 i = 0; i < min(_HARDWARE_GATE_OUTPUT_COUNT, MAX_GATE_COUNT); i++)
+        _set_gate(i, 0);
+    
+    set_clock_output(0);
+
     // screen
     
     if (_HARDWARE_SCREEN) {
@@ -1548,6 +1550,8 @@ static void init(void) {
 }
 
 int main(void) {
+    init_state();
+    
     sysclk_init();
     init_dbg_rs232(FMCK_HZ);
     init_gpio();
@@ -1565,10 +1569,11 @@ int main(void) {
     setup_dacs();    
     init_usb_host();
     init_monome();
+    
     if (_HARDWARE_SCREEN) init_oled();
     process_ii = &process_i2c;
 
-    init();
+    init_hardware();
     initialize_control();
 
     event_t e;
