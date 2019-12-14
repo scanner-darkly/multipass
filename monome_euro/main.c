@@ -1025,6 +1025,7 @@ static void poll_inputs(void) {
 static void handler_front(s32 data) {
     front_button_pressed = !data;
     
+    timer_remove(&front_button_hold_timer);
     if (front_button_pressed)
         timer_add(
             &front_button_hold_timer, 
