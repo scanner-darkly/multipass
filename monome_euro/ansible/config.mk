@@ -43,11 +43,10 @@ THIS = multipass_ans
 PRJ_PATH = ../libavr32/asf
 
 # Target CPU architecture: ap, ucr1, ucr2 or ucr3
-ARCH = ucr1
+ARCH = ucr2
 
 # Target part: none, ap7xxx or uc3xxxxx
-# PART = uc3b064
-PART = uc3b0256
+PART = uc3b0512
 
 # Target device flash memory details (used by the avr32program programming
 # tool: [cfi|internal]@address
@@ -160,7 +159,7 @@ LIBS =
 # Path relative to top level directory pointing to a linker script.
 # LINKER_SCRIPT = avr32/utils/linker_scripts/at32uc3b/0256/gcc/link_uc3b0256.lds
 # LINKER_SCRIPT = avr32/drivers/flashc/flash_example/at32uc3b0256_evk1101/link_uc3b0256.lds
-LINKER_SCRIPT = ../src/link_uc3b0256.lds
+LINKER_SCRIPT = ../src/link_uc3b0512.lds
 
 
 # Additional options for debugging. By default the common Makefile.in will
