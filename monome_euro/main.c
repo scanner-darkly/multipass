@@ -88,6 +88,7 @@
 #define PRESET_COUNT 16
 #define TIMED_EVENT_COUNT 100
 #define SCREEN_LINE_COUNT 8
+#define MAX_EVENT_DATA_LENGTH 16
 
 #define ET_NOTE_COUNT 120 // ET is defined in music.h
 #define MAX_VOICES_COUNT 80
@@ -160,6 +161,7 @@ static struct txo_refresh_t {
 
 static u8 _debug = 0;
 static u8 control_initialized;
+static u8 event_data[MAX_EVENT_DATA_LENGTH];
 
 static u8 adc_timer, hid_poll_timer, inputs_poll_timer, i2c_refresh_timer, midi_poll_timer;
 
@@ -219,7 +221,7 @@ static flash_data_t flash;
 static void _print_str(const char *str);
 static void _print_s16_var(const char *str, s16 var);
 
-static void control_event(u8 event, u8 *data, u8 length);
+static void control_event(u8 event, u8 length);
 static void event_timer_callback(void* o);
 static void grid_hold_callback(void* o);
 static void front_button_hold_callback(void* o);
@@ -734,13 +736,13 @@ void event_timer_callback(void* o) {
     u16 index = (uintptr_t)o;
     if (!event_timers[index].repeat) timer_remove(&event_timers[index].timer);
     
-    u8 d[] = { index };
-    control_event(TIMED_EVENT, d, 1);
+    event_data[0] = index;
+    control_event(TIMED_EVENT, 1);
 }
 
-void control_event(u8 event, u8 *data, u8 length) {
+void control_event(u8 event, u8 length) {
     if (!control_initialized) return;
-    process_event(event, data, length);
+    process_event(event, event_data, length);
 }
 
 
@@ -970,25 +972,28 @@ uint16_t get_txi_param(uint8_t param) {
 // input handlers
 
 static void handler_clock_ext(s32 data) {
-    u8 d[] = { 1, data };
-    control_event(MAIN_CLOCK_RECEIVED, d, 2);
+    event_data[0] = 1;
+    event_data[1] = data;
+    control_event(MAIN_CLOCK_RECEIVED, 2);
 }
 
 static void handler_clock_normal(s32 data) {
     external_clock_connected = !gpio_get_pin_value(_hardware_clock_detect_pin); 
-    u8 d[] = { external_clock_connected };
-    control_event(MAIN_CLOCK_SWITCHED, d, 1);
+    event_data[0] = external_clock_connected;
+    control_event(MAIN_CLOCK_SWITCHED, 1);
 }
 
 static void handler_tr(s32 data) {
     if (data < 2) {
-        u8 d[] = { 1, data };
-        control_event(MAIN_CLOCK_RECEIVED, d, 2);
+        event_data[0] = 1;
+        event_data[1] = data;
+        control_event(MAIN_CLOCK_RECEIVED, 2);
     } else {
         // gate input, only one on ansible so hardcoding
         if (_HARDWARE_GATE_INPUT_COUNT) gate_input_values[0] = data & 1;
-        u8 d[] = { 0, data & 1 };
-        control_event(GATE_RECEIVED, d, 2);
+        event_data[0] = 0;
+        event_data[1] = data & 1;
+        control_event(GATE_RECEIVED, 2);
     }
 }
 
@@ -1000,8 +1005,9 @@ static void poll_inputs(void) {
         pressed = !gpio_get_pin_value(_hardware_button_pins[i]);
         if (button_pressed[i] != pressed) {
             button_pressed[i] = pressed;
-            u8 d[] = { i, pressed };
-            control_event(BUTTON_PRESSED, d, 2);
+            event_data[0] = i;
+            event_data[1] = pressed;
+            control_event(BUTTON_PRESSED, 2);
         }
     }
     
@@ -1033,16 +1039,15 @@ static void handler_front(s32 data) {
             front_button_hold_callback, 
             NULL);
     
-    u8 d[] = { front_button_pressed };
-    control_event(FRONT_BUTTON_PRESSED, d, 1);
+    event_data[0] = front_button_pressed;
+    control_event(FRONT_BUTTON_PRESSED, 1);
 }
 
 void front_button_hold_callback(void* o) {
     timer_remove(&front_button_hold_timer);
     if (!front_button_pressed) return;
     
-    u8 d[] = {};
-    control_event(FRONT_BUTTON_HELD, d, 0);
+    control_event(FRONT_BUTTON_HELD, 0);
 }
 
 
@@ -1073,8 +1078,8 @@ static void handler_ftdi_disconnect(s32 data) {
     u8 is_grid = grid.connected;
     grid.connected = arc.connected = 0;
 
-    u8 d[] = { 0 };
-    control_event(is_grid ? GRID_CONNECTED : ARC_CONNECTED, d, 1);
+    event_data[0] = 0;
+    control_event(is_grid ? GRID_CONNECTED : ARC_CONNECTED, 1);
 }
 
 static void handler_monome_connect(s32 data) {
@@ -1082,16 +1087,16 @@ static void handler_monome_connect(s32 data) {
         arc.encoder_count = monome_encs();
         for (u8 i = 0; i < ARC_MAX_ENCODER_COUNT; i++) arc.delta[i] = 0;
         arc.connected = 1;
-        u8 d[] = { 1 };
-        control_event(ARC_CONNECTED, d, 1);
+        event_data[0] = 1;
+        control_event(ARC_CONNECTED, 1);
     } else {
         timer_remove(&grid_hold_timer);
         grid.column_count = monome_size_x();
         grid.row_count = monome_size_y();
         grid.is_vb = monome_is_vari();
         grid.connected = 1;
-        u8 d[] = { 1 };
-        control_event(GRID_CONNECTED, d, 1);
+        event_data[0] = 1;
+        control_event(GRID_CONNECTED, 1);
     }
     monome_dirty = 1;
     timer_add(&monome_poll_timer, MONOME_POLL_INTERVAL, &monome_poll_callback, NULL );
@@ -1125,15 +1130,18 @@ static void handler_monome_grid_key(s32 data) {
         timer_remove(&grid_hold_timer);
     }
 
-    u8 d[] = { x, y, z };
-    control_event(GRID_KEY_PRESSED, d, 3);
+    event_data[0] = x;
+    event_data[1] = y;
+    event_data[2] = z;
+    control_event(GRID_KEY_PRESSED, 3);
 }
 
 void grid_hold_callback(void* o) {
     timer_remove(&grid_hold_timer);
     
-    u8 d[] = { grid.held_x, grid.held_y };
-    control_event(GRID_KEY_HELD, d, 2);
+    event_data[0] = grid.held_x;
+    event_data[1] = grid.held_y;
+    control_event(GRID_KEY_HELD, 2);
 }
 
 static void handler_monome_ring_enc(s32 data) {
@@ -1143,8 +1151,9 @@ static void handler_monome_ring_enc(s32 data) {
     
     if (n >= ARC_MAX_ENCODER_COUNT) return;
     
-    u8 d[] = { n, delta };
-    control_event(ARC_ENCODER_FINE, d, 2);
+    event_data[0] = n;
+    event_data[1] = delta;
+    control_event(ARC_ENCODER_FINE, 2);
     
     if (delta > 0){
         if (arc.delta[n] > 0) arc.delta[n] += delta; else arc.delta[n] = delta;
@@ -1154,8 +1163,8 @@ static void handler_monome_ring_enc(s32 data) {
     
     if (abs(arc.delta[n]) > ARC_ENCODER_SENSITIVITY) {
         arc.delta[n] = 0;
-        d[1] = delta > 0;
-        control_event(ARC_ENCODER_COARSE, d, 2);
+        event_data[1] = delta > 0;
+        control_event(ARC_ENCODER_COARSE, 2);
     }
 }
 
@@ -1164,15 +1173,15 @@ static void handler_monome_ring_enc(s32 data) {
 // midi handlers
 
 static void handler_midi_connect(s32 data) {
-    u8 d[] = { 1 };
-    control_event(MIDI_CONNECTED, d, 1);
+    event_data[0] = 1;
+    control_event(MIDI_CONNECTED, 1);
     midi_connected = 1;
 }
 
 static void handler_midi_disconnect(s32 data) {
     midi_connected = 0;
-    u8 d[] = { 0 };
-    control_event(MIDI_CONNECTED, d, 1);
+    event_data[0] = 0;
+    control_event(MIDI_CONNECTED, 1);
 }
 
 static void handler_standard_midi_packet(s32 data) {
@@ -1180,23 +1189,33 @@ static void handler_standard_midi_packet(s32 data) {
 }
 
 static void midi_note_on(u8 ch, u8 num, u8 vel) {
-    u8 d[] = { ch, num, vel, 1 };
-    control_event(MIDI_NOTE, d, 4);
+    event_data[0] = ch;
+    event_data[1] = num;
+    event_data[2] = vel;
+    event_data[3] = 1;
+    control_event(MIDI_NOTE, 4);
 }
 
 static void midi_note_off(u8 ch, u8 num, u8 vel) {
-    u8 d[] = { ch, num, vel, 0 };
-    control_event(MIDI_NOTE, d, 4);
+    event_data[0] = ch;
+    event_data[1] = num;
+    event_data[2] = vel;
+    event_data[3] = 0;
+    control_event(MIDI_NOTE, 4);
 }
 
 static void midi_control_change(u8 ch, u8 num, u8 val) {
-    u8 d[] = { ch, num, val };
-    control_event(MIDI_CC, d, 3);
+    event_data[0] = ch;
+    event_data[1] = num;
+    event_data[2] = val;
+    control_event(MIDI_CC, 3);
 }
 
 static void midi_aftertouch(u8 ch, u8 num, u8 val) {
-    u8 d[] = { ch, num, val };
-    control_event(MIDI_AFTERTOUCH, d, 3);
+    event_data[0] = ch;
+    event_data[1] = num;
+    event_data[2] = val;
+    control_event(MIDI_AFTERTOUCH, 3);
 }
 
 
@@ -1205,20 +1224,20 @@ static void midi_aftertouch(u8 ch, u8 num, u8 val) {
 
 static void handler_hid_connect(int32_t data) {
     hid.connected = 1;
-    u8 d[] = { 1 };
+    event_data[0] = 1;
 
     uhc_device_t* dev = (uhc_device_t*)(data);
     
     if (dev->dev_desc.idProduct == 0x6666) {
         hid.device = hid_shnth;
-        control_event(SHNTH_CONNECTED, d, 1);
+        control_event(SHNTH_CONNECTED, 1);
         hid.shnth_init_bars = hid.shnth_init_antennas = 1;
     } else if (dev->dev_desc.idVendor == 0x4C05) {
         hid.device = hid_ps3;
     } else {
         hid.device = hid_keyboard;
         hid.mod_key = hid.key = 0;
-        control_event(KEYBOARD_CONNECTED, d, 1);
+        control_event(KEYBOARD_CONNECTED, 1);
     }
     
     if (_debug) {
@@ -1241,11 +1260,11 @@ static void handler_hid_connect(int32_t data) {
 
 static void handler_hid_disconnect(int32_t data) {
     hid.connected = 0;
-    u8 d[] = { 0 };
+    event_data[0] = 0;
     if (hid.device == hid_shnth) {
-        control_event(SHNTH_CONNECTED, d, 1);
+        control_event(SHNTH_CONNECTED, 1);
     } else {
-        control_event(KEYBOARD_CONNECTED, d, 1);
+        control_event(KEYBOARD_CONNECTED, 1);
     }
 }
 
@@ -1267,8 +1286,9 @@ static void process_hid(void) {
                 hid.shnth_bars[i] = frame[i];
                 value = (u16)(128 + frame[i]);
                 if (value > 255) value = 255;
-                u8 d[] = { i, value & 0xff };
-                control_event(SHNTH_BAR, d, 2);
+                event_data[0] = i;
+                event_data[1] = value & 0xff;
+                control_event(SHNTH_BAR, 2);
             }
         }
         
@@ -1284,8 +1304,9 @@ static void process_hid(void) {
                // get it into 0..255 range
                 value = abs(hid.shnth_antennas[i]) << 1;
                 if (value > 255) value = 255;
-                u8 d[] = { i, value };
-                control_event(SHNTH_ANTENNA, d, 2);
+                event_data[0] = i;
+                event_data[1] = value;
+                control_event(SHNTH_ANTENNA, 2);
             }
         }
         
@@ -1293,8 +1314,9 @@ static void process_hid(void) {
         for (u8 i = 0; i < 8; i++) {
             bit = 1 << i;
             if ((frame[7] & bit) != (hid.frame[7] & bit)) {
-                u8 d[] = { i, frame[7] & bit };
-                control_event(SHNTH_BUTTON, d, 2);
+                event_data[0] = i;
+                event_data[1] = frame[7] & bit;
+                control_event(SHNTH_BUTTON, 2);
             }
         }
         hid.frame[7] = frame[7];
@@ -1305,15 +1327,19 @@ static void process_hid(void) {
         for (u8 i = 2; i < 8; i++) {
             if (frame[i] == 0) {
                 if (i == 2) {
-                    u8 d[] = { hid.mod_key, hid.key, 0 };
-                    control_event(KEYBOARD_KEY, d, 3);
+                    event_data[0] = hid.mod_key;
+                    event_data[1] = hid.key;
+                    event_data[2] = 0;
+                    control_event(KEYBOARD_KEY, 3);
                     hid.key = 0;
                 }
             }
             else if (hid.frame[i] != frame[i]) {
                 hid.key = frame[i];
-                u8 d[] = { hid.mod_key, hid.key, 1 };
-                control_event(KEYBOARD_KEY, d, 3);
+                event_data[0] = hid.mod_key;
+                event_data[1] = hid.key;
+                event_data[2] = 1;
+                control_event(KEYBOARD_KEY, 3);
             }
             hid.frame[i] = frame[i];
         }
@@ -1325,7 +1351,9 @@ static void process_hid(void) {
 // i2c handlers
 
 static void process_i2c(uint8_t *data, uint8_t length) {
-    control_event(I2C_RECEIVED, data, length);
+    for (uint8_t i = 0; i < min(length, MAX_EVENT_DATA_LENGTH); i++)
+        event_data[i] = data[i];
+    control_event(I2C_RECEIVED, length);
 }
 
 static void refresh_i2c(void) {
