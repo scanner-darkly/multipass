@@ -248,8 +248,8 @@ static void _set_txo_gate(u8 output, u8 on);
 static void _send_txo_note(u8 output, s16 pitch, u16 volume);
 static int16_t _get_txi_value(u8 index, bool shift);
 
-static int _i2c_master_tx(uint8_t addr, uint8_t *data, uint8_t length);
-static int _i2c_master_rx(uint8_t addr, uint8_t *data, uint8_t length);
+static int _i2c_leader_tx(uint8_t addr, uint8_t *data, uint8_t length);
+static int _i2c_leader_rx(uint8_t addr, uint8_t *data, uint8_t length);
 static void _set_i2c_mode(u8 leader);
 
 
@@ -749,14 +749,14 @@ void control_event(u8 event, u8 length) {
 // ----------------------------------------------------------------------------
 // i2c device helpers
 
-int _i2c_master_tx(u8 addr, u8 *data, u8 length) {
+int _i2c_leader_tx(u8 addr, u8 *data, u8 length) {
     if (!is_i2c_leader) return 0;
-    return i2c_master_tx(addr, data, length);
+    return i2c_leader_tx(addr, data, length);
 }
 
-int _i2c_master_rx(uint8_t addr, uint8_t *data, uint8_t l) {
+int _i2c_leader_rx(uint8_t addr, uint8_t *data, uint8_t l) {
     if (!is_i2c_leader) return 0;
-    return i2c_master_rx(addr, data, l);
+    return i2c_leader_rx(addr, data, l);
 }
 
 void _send_note(u8 output, s16 pitch, u16 volume) {
@@ -816,12 +816,12 @@ void _set_gate(u8 output, u8 on) {
 
 void _set_i2c_mode(u8 leader) {
     if (leader && !is_i2c_leader) {
-        init_i2c_master();
+        init_i2c_leader();
         is_i2c_leader = 1;
     } else if (!leader && is_i2c_leader) {
         is_i2c_leader = 0;
         _set_jf_mode(0);
-        if (i2c_follower_address) init_i2c_slave(i2c_follower_address);
+        if (i2c_follower_address) init_i2c_follower(i2c_follower_address);
     }
 }
 
@@ -843,26 +843,26 @@ void _set_er301_cv(u8 output, s16 value) {
     if (output >= MAX_ER301_OUTPUT_COUNT) return;
     
     u8 d[] = { TO_CV_SET, output, (u16)value >> 8, value & 0xff };
-    _i2c_master_tx(ER301_1, d, 4);
+    _i2c_leader_tx(ER301_1, d, 4);
 }
 
 void _set_er301_gate(u8 output, u8 on) {
     if (output >= MAX_ER301_OUTPUT_COUNT) return;
     
     u8 d[] = { TO_TR, output, 0, on & 1 };
-    _i2c_master_tx(ER301_1, d, 4);
-    _i2c_master_tx(ER301_1, d, 4);
+    _i2c_leader_tx(ER301_1, d, 4);
+    _i2c_leader_tx(ER301_1, d, 4);
 }
 
 void _set_jf_mode(u8 mode) {
     if (mode && !jf_mode) {
         jf_mode = 1;
         u8 d[] = { JF_MODE, 1 };
-        _i2c_master_tx(JF_ADDR, d, 2);
+        _i2c_leader_tx(JF_ADDR, d, 2);
     } else if (!mode && jf_mode) {
         jf_mode = 0;
         u8 d[] = { JF_MODE, 0 };
-        _i2c_master_tx(JF_ADDR, d, 2);
+        _i2c_leader_tx(JF_ADDR, d, 2);
     }
 }
 
@@ -872,7 +872,7 @@ void _send_jf_note(u8 output, s16 pitch, u16 volume) {
     u32 vol = (u32)volume * (u32)jf_volume[output] / MAX_LEVEL;
     pitch += jf_transpose[output] - 3277;
     u8 d[] = { JF_VOX, output + 1, (u16)pitch >> 8, pitch & 0xff, (u16)vol >> 8, vol & 0xff };
-    _i2c_master_tx(JF_ADDR, d, 6);
+    _i2c_leader_tx(JF_ADDR, d, 6);
     
     // this should only be needed if volume is 0
     // but for some reason it works better if it's done note on as well
@@ -883,7 +883,7 @@ void _set_jf_gate(u8 output, u8 on) {
     if (output >= MAX_JF_VOICE_COUNT) return;
     
     uint8_t d[] = { JF_TR, output + 1, on & 1 };
-    _i2c_master_tx(JF_ADDR, d, 3);
+    _i2c_leader_tx(JF_ADDR, d, 3);
 }
 
 // all txo comm should be done through this as it safeguards
@@ -894,7 +894,7 @@ void _send_txo_command(u8 output, u8 command, s16 value) {
     u8 port = output & 0b11;
 
     u8 d[] = { command, port, (u16)value >> 8, value & 0xff };
-    _i2c_master_tx(address, d, 4);
+    _i2c_leader_tx(address, d, 4);
 }
 
 void _set_txo_mode(u8 output, u8 mode) {
@@ -947,12 +947,12 @@ int16_t _get_txi_value(uint8_t index, bool shift) {
     port += shift ? 4 : 0;
     uint8_t buffer[2];
     buffer[0] = port;
-    _i2c_master_tx(address, buffer, 1);
+    _i2c_leader_tx(address, buffer, 1);
     
     // now read
     buffer[0] = 0;
     buffer[1] = 0;
-    _i2c_master_rx(address, buffer, 2);
+    _i2c_leader_rx(address, buffer, 2);
     return (buffer[0] << 8) + buffer[1];
 }
 
