@@ -90,7 +90,7 @@
 #define SCREEN_LINE_COUNT 8
 #define MAX_EVENT_DATA_LENGTH 16
 
-#define ET_NOTE_COUNT 120 // ET is defined in music.h
+#define ET_NOTE_COUNT 128 // ET is defined in music.h
 #define MAX_VOICES_COUNT 80
 #define MAX_OUTPUT_COUNT 16 // max outputs per device for note mapping
 #define MAX_TXO_VOICE_COUNT 16 //  max 4 devices x 4 voices
@@ -479,7 +479,7 @@ void note_v(u8 voice, s16 pitch, u16 volume, u8 on) {
 
 void note_on(u8 voice, u16 note, u16 volume) {
     if (note >= ET_NOTE_COUNT) return;
-    note_on_v(voice, ET[note] << 2, volume);
+    note_on_v(voice, ET[note], volume);
 }
 
 void note_on_v(u8 voice, s16 pitch, u16 volume) {
@@ -543,7 +543,7 @@ void map_voice(u8 voice, u8 device, u8 output, u8 on) {
 
 void set_output_transpose(u8 device, u16 output, u16 note) {
     if (note >= ET_NOTE_COUNT) return;
-    set_output_transpose_v(device, output, ET[note] << 2);
+    set_output_transpose_v(device, output, ET[note]);
 }
 
 void set_output_transpose_v(u8 device, u16 output, s16 pitch) {
