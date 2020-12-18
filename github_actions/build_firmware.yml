@@ -1,0 +1,64 @@
+name: build firmware
+
+# this workflow builds firmware for selected modules
+# and uploads compiled firmware as artifacts
+
+# specify modules to build for in the matrix module property below
+# possible values are: ansible, teletype, whitewhale, meadowphysics, earthsea
+
+# the workflow has to be triggered manually
+# you can configure it to trigger on other events, like push or pull_request:
+
+# on:
+#   push:
+#     branches: [main]
+
+# on:
+#   pull_request:
+#     types: [opened, reopened]
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: [ansible, teletype]
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+        fetch-depth: '0'
+
+    - name: restore toolchain
+      run: |
+        git clone https://github.com/monome/avr32-toolchain-linux.git deps/avr32-toolchain-linux
+        cd deps/avr32-toolchain-linux
+        tar xvfz avr32-gnu-toolchain-3.4.3.820-linux.any.x86_64.tar.gz
+        mv avr32-gnu-toolchain-linux_x86_64 $HOME/avr32-tools
+        unzip avr32-headers-6.2.0.742.zip -d $HOME/avr32-tools/avr32/include
+        
+    - name: build firmware
+      run: |
+        PATH="$HOME/avr32-tools/bin:$PATH"
+        cd multipass/monome_euro/${{matrix.module}}
+        find ../../.. -name '*.o' -delete
+        make
+        
+    - name: prepare files
+      id: get_file_name
+      run: |
+        HEX_FILE_PATH=`echo multipass/monome_euro/${{matrix.module}}/*.hex "$1"`
+        HEX_FILE=`basename $HEX_FILE_PATH`
+        NAMED_FILE=`echo "${HEX_FILE//multipass_/${{github.event.repository.name}}_}"`
+        echo ::set-output name=named_file::$NAMED_FILE
+        mv $HEX_FILE_PATH $NAMED_FILE
+
+    - name: upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ steps.get_file_name.outputs.named_file }}
+        path: ${{ steps.get_file_name.outputs.named_file }}
