@@ -410,6 +410,11 @@ void clear_all_grid_leds() {
         monomeLedBuffer[i] = 0;
 }
 
+u8 get_grid_led(u8 x, u8 y) {
+    u16 index = (y << 4) + x;
+    return index < MONOME_MAX_LED_BYTES ? monomeLedBuffer[index] : 0;
+}
+
 void set_grid_led(u8 x, u8 y, u8 level) {
     u16 index = (y << 4) + x;
     if (index < MONOME_MAX_LED_BYTES)
@@ -439,6 +444,11 @@ void clear_all_arc_leds() {
     for (u16 i = 0; i < MONOME_MAX_LED_BYTES; i++)
         monomeLedBuffer[i] = 0;
 
+}
+
+u8 get_arc_led(u8 enc, u8 led) {
+    u16 index = (enc << 6) + led;
+    return index < MONOME_MAX_LED_BYTES ? monomeLedBuffer[index] : 0;
 }
 
 void set_arc_led(u8 enc, u8 led, u8 level) {

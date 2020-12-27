@@ -117,6 +117,7 @@ uint8_t get_grid_row_count(void);
 uint8_t is_grid_vb(void);
 
 void clear_all_grid_leds(void);
+uint8_t get_grid_led(uint8_t x, uint8_t y);
 void set_grid_led(uint8_t x, uint8_t y, uint8_t level);
 void set_grid_led_i(uint16_t index, uint8_t level);
 void refresh_grid(void);
@@ -125,6 +126,7 @@ uint8_t is_arc_connected(void);
 uint8_t get_arc_encoder_count(void);
 
 void clear_all_arc_leds(void);
+uint8_t get_arc_led(uint8_t enc, uint8_t led);
 void set_arc_led(uint8_t enc, uint8_t led, uint8_t level);
 void refresh_arc(void);
 
