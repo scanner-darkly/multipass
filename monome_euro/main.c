@@ -469,6 +469,11 @@ u8 is_midi_connected() {
 
 // notes
 
+u16 note_to_pitch(u16 note) {
+    if (note >= ET_NOTE_COUNT) return ET[ET_NOTE_COUNT - 1];
+    return ET[note];
+}
+
 static u8 _is_voice_mapped(u8 voice, u8 device, u8 output) {
     return (voice_maps[voice][device][output >> 3] & (1 << (output & 7))) && device_on[device];
 }

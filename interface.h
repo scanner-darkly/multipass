@@ -140,6 +140,7 @@ uint8_t is_midi_connected(void);
 // ----------------------------------------------------------------------------
 // notes
 
+uint16_t note_to_pitch(uint16_t note);
 void note(uint8_t voice, uint16_t note, uint16_t volume, uint8_t on);
 void note_v(uint8_t voice, int16_t pitch, uint16_t volume, uint8_t on);
 void note_on(uint8_t voice, uint16_t note, uint16_t volume);
