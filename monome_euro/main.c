@@ -43,6 +43,7 @@
 #include "timers.h"
 #include "adc.h"
 #include "util.h"
+#include "cdc.h"
 #include "ftdi.h"
 #include "twi.h"
 #include "dac.h"
@@ -1070,7 +1071,7 @@ void front_button_hold_callback(void* o) {
 // monome/ftdi handlers
 
 static void monome_poll_callback(void* obj) {
-    ftdi_read();
+    serial_read();
 }
 
 static void monome_refresh_callback(void* obj) {
@@ -1083,6 +1084,11 @@ static void monome_refresh_callback(void* obj) {
 
 static void handler_ftdi_connect(s32 data) {
     ftdi_setup();
+}
+
+
+static void handler_serial_connect(s32 data) {
+    monome_setup_mext();
 }
 
 static void handler_ftdi_disconnect(s32 data) {
@@ -1409,6 +1415,9 @@ static inline void assign_main_event_handlers(void) {
     
     app_event_handlers[kEventFtdiConnect]      = &handler_ftdi_connect;
     app_event_handlers[kEventFtdiDisconnect]   = &handler_ftdi_disconnect;
+    app_event_handlers[kEventSerialConnect]    = &handler_serial_connect;
+    app_event_handlers[kEventSerialDisconnect] = &handler_ftdi_disconnect;
+
     app_event_handlers[kEventMonomeConnect]    = &handler_monome_connect;
     app_event_handlers[kEventMonomeDisconnect] = &handler_none;
     app_event_handlers[kEventMonomeRefresh]    = &handler_monome_refresh;
