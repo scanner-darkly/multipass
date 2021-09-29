@@ -69,7 +69,7 @@
  *        identifier will be replaced.
  *
  * @param index Used to register and identify the timed event. Valid values are
- *        between 0 and TIMED_EVENT_COUNT
+ *        between 0 and TIMED_EVENT_COUNT - 1
  * @param ms How often the timed event should be triggered in milliseconds
  * @param repeat 0 or 1 value indicating if the timed event should repeat
  *        indefinitely
@@ -80,7 +80,7 @@ void add_timed_event(uint8_t index, uint16_t ms, uint8_t repeat);
  * @brief Stops and removes a previously added timed event at the index
  *        identifier.
  * 
- * @param index Integer value of the timed event to stop
+ * @param index Index identifier of the timed event to stop
  */
 void stop_timed_event(uint8_t index);
 
@@ -88,7 +88,7 @@ void stop_timed_event(uint8_t index);
  * @brief Updates a previously registed timed event trigger interval in
  *        milliseconds
  * 
- * @param index Integer value of the timed event to update
+ * @param index Index identifier of the timed event to update
  * @param ms How often the timed event should be triggered in milliseconds
  */
 void update_timer_interval(uint8_t index, uint16_t ms);
