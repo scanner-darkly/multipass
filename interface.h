@@ -147,7 +147,7 @@ uint8_t get_cv_input_count(void);
  * 
  * @param index Hardware CV input number (first input is index 0)
  * @return int16_t Returns CV value represented as a signed integer with the
- *         range of -16,384 (-10v) and 16,384 (+10v).
+ *         range of -16,384 (-10v) and 16,383 (+10v).
  */
 int16_t get_cv(uint8_t index);
 
@@ -186,7 +186,7 @@ uint8_t get_cv_output_count(void);
  * 
  * @param output index value of the CV output
  * @param value CV value represented as a signed integer with a range of
- *        -16,384 (-10v) and 16,384 (+10v)
+ *        -16,384 (-10v) and 16,383 (+10v)
  */
 void set_cv(uint8_t output, int16_t value);
 
