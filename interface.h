@@ -105,7 +105,7 @@ void update_timer_interval(uint8_t index, uint16_t ms);
 uint64_t get_global_time(void);
 
 /**
- * @brief Check is hardware has a CV clock input
+ * @brief Check if hardware has a CV clock input
  * 
  * @return uint8_t Returns 0 if hardware does not have CV clock input,
  *         uint8_t Returns 1 if hardware has CV clock input
