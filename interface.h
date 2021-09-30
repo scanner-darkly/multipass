@@ -140,10 +140,8 @@ void set_clock_output(uint8_t on);
 uint8_t get_cv_input_count(void);
 
 /**
- * @brief Get the CV value for the provided input index.
- * 
- * Note: this functionality is not fully implemented. Teletype is currently the
- * only Monome module that has a CV input. 
+ * @brief Get the CV value for the provided input index. Teletype is currently
+ *        the only Monome module that has a CV input. 
  * 
  * @param index Hardware CV input number (first input is index 0)
  * @return int16_t Returns CV value represented as a signed integer with the
@@ -160,9 +158,6 @@ uint8_t get_gate_input_count(void);
 
 /**
  * @brief Get the CV gate value for the provided input index.
- * 
- * Note: this functionality is only functional for CV gate input 0 of the
- * Monome Ansible and Teletype modules.
  * 
  * @param index Hardware CV gate input number (first input is index 0)
  * @return uint8_t Returns 0 when CV gate input is low,
