@@ -463,14 +463,14 @@ void note_on_v(uint8_t voice, int16_t pitch, uint16_t volume);
 void note_off(uint8_t voice);
 
 /**
- * @brief Map or unmap a multipass voice. A multipass voice is a virtual output
- *        mapped to any hardware CV & Gate output, and/or I2C device output.
- *        Once mapped, a voice can then be trigger by calling convenient
- *        note/pitch based functions (e.g. note(), note_v(), etc.) and
- *        multipass will translate it into the appropriate device specific
- *        hardware actions. The discrete device specific hardware actions (such
- *        as set_cv(), set_er301_cv(), set_txo_cv(), etc.) remain available for
- *        use.
+ * @brief Map a multipass voice to a device output. A multipass voice is a
+ *        virtual output mapped to any hardware CV & Gate output, and/or I2C
+ *        device output. Once mapped, a voice can then be trigger by calling
+ *        convenient note/pitch based functions (e.g. note(), note_v(), etc.)
+ *        and multipass will translate the calls into the appropriate device
+ *        specific hardware actions. The discrete device specific hardware
+ *        actions (such as set_cv(), set_er301_cv(), set_txo_cv(), etc.) remain
+ *        available for use.
  * 
  * @param voice Value used to register and identify the voice. Valid values are
  *        between 0 and MAX_VOICE_COUNT - 1
@@ -478,9 +478,10 @@ void note_off(uint8_t voice);
  *        For valid values, see the #define VOICE_… values (e.g. VOICE_CV_GATE)
  *        at the top of this file.
  * @param output Device output that the multipass voice should map to
- * @param on Value indicating if the mapping should be on or off.
- *           0 will remove a previously mapped voice to the specified device.
- *           1 will add a new mapping of voice to the specified device.
+ * @param on Value indicating if the mapping should be on or off. When set to
+ *        off, the device output will not trigger when the voice is updated.
+ *        0 mapped voice -> device output is off
+ *        1 mapped voice -> device output is on
  * 
  * @see note(), note_v(), note_on(), note_on_v(), note_off(),
  *      set_output_transpose(), set_output_transpose_v(),
