@@ -141,7 +141,7 @@ uint8_t get_cv_input_count(void);
 
 /**
  * @brief Get the CV value for the provided input index. Teletype is currently
- *        the only Monome module that has a CV input. 
+ *        the only Monome module that has a CV input.
  * 
  * @param index Hardware CV input number (first input is index 0)
  * @return int16_t Returns CV value represented as a signed integer with the
