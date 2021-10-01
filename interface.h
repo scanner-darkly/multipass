@@ -543,7 +543,18 @@ void set_output_max_volume(uint8_t device, uint16_t output, uint16_t volume);
 
 void mute_device(uint8_t device, uint8_t mute);
 
+/**
+ * @brief Sets this Monome hardware to be the I2C leader.
+ * 
+ */
 void set_as_i2c_leader(void);
+
+/**
+ * @brief Sets this Monome hardware to be an I2C follower with the provided
+ *        address.
+ * 
+ * @param address I2C address used to communicate with this Monome hardware via I2C
+ */
 void set_as_i2c_follower(uint8_t address);
 
 void set_er301_cv(uint8_t output, int16_t value);
