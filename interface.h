@@ -541,6 +541,19 @@ void set_output_max_volume(uint8_t device, uint16_t output, uint16_t volume);
 // ----------------------------------------------------------------------------
 // i2c / devices
 
+/**
+ * @brief Mute or unmute all outputs on a device, for use in conjuction with the
+ *        multipass mapped voice note triggering functions.
+ * 
+ * @param device Device identifier value between 0 and MAX_DEVICE_COUNT - 1.
+ *        For valid values, see the #define VOICE_… values (e.g. VOICE_CV_GATE)
+ *        at the top of this file.
+ * @param mute Value indicating if the mapped voice should be muted or not.
+ *        0 device is not muted
+ *        1 device is muted
+ * 
+ * @see map_voice(), note(), note_v(), note_on(), note_on_v(), note_off()
+ */
 void mute_device(uint8_t device, uint8_t mute);
 
 /**
