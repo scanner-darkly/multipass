@@ -391,13 +391,103 @@ uint8_t is_midi_connected(void);
  * @see music.c/h in libavr32 library for reference
  */
 uint16_t note_to_pitch(uint16_t note);
+
+/**
+ * @brief Send a chromatic note, volume, and on/off state to the mapped voice
+ *        number
+ * 
+ * @param voice Number of the mapped voice to send a note on/off to
+ * @param note Number of the note to send. Standard MIDI note values apply
+ * @param volume Volume level of the note. A volume of 0 is always
+ *        considered the equivalent of a note off.
+ *        Monome hardware, TXO CV/Gate: A value of 0 or  >= 1
+ *        ER301, Just Friends, TXO note (sound source): A value between 0 and
+ *        MAX_LEVEL (16,383)
+ * @param on 0 if note should be off,
+ *           1 if note should be on
+ */
 void note(uint8_t voice, uint16_t note, uint16_t volume, uint8_t on);
+
+/**
+ * @brief Send pitch, volume, and on/off state to the mapped voice number.
+ *        Useful for microtonal scales, where the value maps to output
+ *        voltage directly, with a range of -16,384 (-10v) and 16,383 (+10v)
+ * 
+ * @param voice Number of the mapped voice to send a note on/off to
+ * @param pitch Value of the pitch to send. A valid value is between -16,384
+ *        and 16,383.
+ * @param volume Volume level of the note. A volume of 0 is always
+ *        considered the equivalent of a note off.
+ *        Monome hardware, TXO CV/Gate: A value of 0 or  >= 1
+ *        ER301, Just Friends, TXO note (sound source): A value between 0 and
+ *        MAX_LEVEL (16,383)
+ * @param on 0 if note should be off,
+ *           1 if note should be on
+ */
 void note_v(uint8_t voice, int16_t pitch, uint16_t volume, uint8_t on);
+
+/**
+ * @brief Send a chromatic note on, and volume to the mapped voice number
+ * 
+ * @param voice Number of the mapped voice to send a note on to
+ * @param note Number of the note to send. Standard MIDI note values apply
+ * @param volume Volume level of the note. A volume of 0 is always
+ *        considered the equivalent of a note off.
+ *        Monome hardware, TXO CV/Gate: A value of 0 or  >= 1
+ *        ER301, Just Friends, TXO note (sound source): A value between 0 and
+ *        MAX_LEVEL (16,383)
+ */
 void note_on(uint8_t voice, uint16_t note, uint16_t volume);
+
+/**
+ * @brief Send pitch, and volume to the mapped voice number. Useful for
+ *        microtonal scales, where the value maps to output voltage directly,
+ *        with a range of -16,384 (-10v) and 16,383 (+10v)
+ * 
+ * @param voice Number of the mapped voice to send a note on to
+ * @param pitch Value of the pitch to send. A valid value is between -16,384
+ *        and 16,383.
+ * @param volume Volume level of the note. A volume of 0 is always
+ *        considered the equivalent of a note off.
+ *        Monome hardware, TXO CV/Gate: A value of 0 or  >= 1
+ *        ER301, Just Friends, TXO note (sound source): A value between 0 and
+ *        MAX_LEVEL (16,383)
+ */
 void note_on_v(uint8_t voice, int16_t pitch, uint16_t volume);
+
+/**
+ * @brief Send a note off to the specified voice
+ * 
+ * @param voice Number of the mapped voice to send a note off to
+ */
 void note_off(uint8_t voice);
 
+/**
+ * @brief Map or unmap a multipass voice. A multipass voice is a virtual output
+ *        mapped to any hardware CV & Gate output, and/or I2C device output.
+ *        Once mapped, a voice can then be trigger by calling convenient
+ *        note/pitch based functions (e.g. note(), note_v(), etc.) and
+ *        multipass will translate it into the appropriate device specific
+ *        hardware actions. The discrete device specific hardware actions (such
+ *        as set_cv(), set_er301_cv(), set_txo_cv(), etc.) remain available for
+ *        use.
+ * 
+ * @param voice Value used to register and identify the voice. Valid values are
+ *        between 0 and MAX_VOICE_COUNT - 1
+ * @param device The device identifier value between 0 and
+ *        MAX_DEVICE_COUNT - 1. For valid values, see the #define VOICE_…
+ *        values (e.g. VOICE_CV_GATE) at the top of this file.
+ * @param output The device output that the multipass voice should map to
+ * @param on Value indicating if the mapping should be on or off.
+ *           0 will remove a previously mapped voice to the specified device.
+ *           1 will add a new mapping of voice to the specified device.
+ * 
+ * @see note(), note_v(), note_on(), note_on_v(), note_off(),
+ *      set_output_transpose(), set_output_transpose_v(),
+ *      set_output_max_volume()
+ */
 void map_voice(uint8_t voice, uint8_t device, uint8_t output, uint8_t on);
+
 void set_output_transpose(uint8_t device, uint16_t output, uint16_t note);
 void set_output_transpose_v(uint8_t device, uint16_t output, int16_t pitch);
 void set_output_max_volume(uint8_t device, uint16_t output, uint16_t volume);
