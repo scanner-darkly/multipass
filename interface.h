@@ -557,7 +557,23 @@ void set_as_i2c_leader(void);
  */
 void set_as_i2c_follower(uint8_t address);
 
+/**
+ * @brief Set the value of the indicated CV output on a connected ER301 via I2C.
+ * 
+ * @param output ER301 CV output number
+ * @param value CV value represented as a signed integer with a range of
+ *        -16,384 (-10v) and 16,383 (+10v)
+ */
 void set_er301_cv(uint8_t output, int16_t value);
+
+/**
+ * @brief Set the value of the indicated CV gate output on a connected ER301 via
+ *        I2C.
+ * 
+ * @param output ER301 CV output number
+ * @param on 0 CV gate output is low,
+ *           1 CV gate output is high
+ */
 void set_er301_gate(uint8_t output, uint8_t on);
 
 void set_jf_mode(uint8_t mode);
