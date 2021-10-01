@@ -583,7 +583,7 @@ void set_er301_cv(uint8_t output, int16_t value);
  * @brief Set the value of the indicated CV gate output on a connected ER301 via
  *        I2C.
  * 
- * @param output ER301 CV output number
+ * @param output ER301 CV gate output number
  * @param on 0 CV gate output is low,
  *           1 CV gate output is high
  */
