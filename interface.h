@@ -400,9 +400,9 @@ uint16_t note_to_pitch(uint16_t note);
  * @param note Number of the note to send. Standard MIDI note values apply
  * @param volume Volume level of the note. A volume of 0 is always
  *        considered the equivalent of a note off.
- *        Monome hardware, TXO CV/Gate: A value of 0 or  >= 1
- *        ER301, Just Friends, TXO note (sound source): A value between 0 and
- *        MAX_LEVEL (16,383)
+ *        Monome hardware, TELEXo CV/Gate: A value of 0 or  >= 1
+ *        ER301, Just Friends, TELEXo note (sound source): A value between 0
+ *        and MAX_LEVEL (16,383)
  * @param on 0 if note should be off,
  *           1 if note should be on
  */
@@ -418,9 +418,9 @@ void note(uint8_t voice, uint16_t note, uint16_t volume, uint8_t on);
  *        and 16,383.
  * @param volume Volume level of the note. A volume of 0 is always
  *        considered the equivalent of a note off.
- *        Monome hardware, TXO CV/Gate: A value of 0 or  >= 1
- *        ER301, Just Friends, TXO note (sound source): A value between 0 and
- *        MAX_LEVEL (16,383)
+ *        Monome hardware, TELEXo CV/Gate: A value of 0 or  >= 1
+ *        ER301, Just Friends, TELEXo note (sound source): A value between 0
+ *        and MAX_LEVEL (16,383)
  * @param on 0 if note should be off,
  *           1 if note should be on
  */
@@ -433,9 +433,9 @@ void note_v(uint8_t voice, int16_t pitch, uint16_t volume, uint8_t on);
  * @param note Number of the note to send. Standard MIDI note values apply
  * @param volume Volume level of the note. A volume of 0 is always
  *        considered the equivalent of a note off.
- *        Monome hardware, TXO CV/Gate: A value of 0 or  >= 1
- *        ER301, Just Friends, TXO note (sound source): A value between 0 and
- *        MAX_LEVEL (16,383)
+ *        Monome hardware, TELEXo CV/Gate: A value of 0 or  >= 1
+ *        ER301, Just Friends, TELEXo note (sound source): A value between 0
+ *        and MAX_LEVEL (16,383)
  */
 void note_on(uint8_t voice, uint16_t note, uint16_t volume);
 
@@ -449,9 +449,9 @@ void note_on(uint8_t voice, uint16_t note, uint16_t volume);
  *        and 16,383.
  * @param volume Volume level of the note. A volume of 0 is always
  *        considered the equivalent of a note off.
- *        Monome hardware, TXO CV/Gate: A value of 0 or  >= 1
- *        ER301, Just Friends, TXO note (sound source): A value between 0 and
- *        MAX_LEVEL (16,383)
+ *        Monome hardware, TELEXo CV/Gate: A value of 0 or  >= 1
+ *        ER301, Just Friends, TELEXo note (sound source): A value between 0
+ *        and MAX_LEVEL (16,383)
  */
 void note_on_v(uint8_t voice, int16_t pitch, uint16_t volume);
 
@@ -474,10 +474,10 @@ void note_off(uint8_t voice);
  * 
  * @param voice Value used to register and identify the voice. Valid values are
  *        between 0 and MAX_VOICE_COUNT - 1
- * @param device The device identifier value between 0 and
- *        MAX_DEVICE_COUNT - 1. For valid values, see the #define VOICE_…
- *        values (e.g. VOICE_CV_GATE) at the top of this file.
- * @param output The device output that the multipass voice should map to
+ * @param device Device identifier value between 0 and MAX_DEVICE_COUNT - 1.
+ *        For valid values, see the #define VOICE_… values (e.g. VOICE_CV_GATE)
+ *        at the top of this file.
+ * @param output Device output that the multipass voice should map to
  * @param on Value indicating if the mapping should be on or off.
  *           0 will remove a previously mapped voice to the specified device.
  *           1 will add a new mapping of voice to the specified device.
