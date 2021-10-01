@@ -282,8 +282,8 @@ void clear_all_grid_leds(void);
  * 
  * @param x The x-coordinate of the LED
  * @param y The y-coordinate of the LED
- * @return uint8_t Returns the level of the LED at the provided coordinates. Valid
- *         values between 0 and 15, 0 = off, 15 = full level
+ * @return uint8_t Returns the level of the LED at the provided coordinates.
+ *         Valid values between 0 and 15, 0 = off, 15 = full level
  */
 uint8_t get_grid_led(uint8_t x, uint8_t y);
 
