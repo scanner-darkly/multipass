@@ -488,8 +488,52 @@ void note_off(uint8_t voice);
  */
 void map_voice(uint8_t voice, uint8_t device, uint8_t output, uint8_t on);
 
+/**
+ * @brief Set the output transpose note value for a specific device output, for
+ *        use in conjuction with the multipass mapped voice note triggering
+ *        functions.
+ * 
+ * @param device Device identifier value between 0 and MAX_DEVICE_COUNT - 1.
+ *        For valid values, see the #define VOICE_… values (e.g. VOICE_CV_GATE)
+ *        at the top of this file.
+ * @param output The device output to transpose
+ * @param note The chromatic note amount to transpose the output by. Standard
+ *        MIDI note values apply.
+ * 
+ * @see map_voice(), note(), note_v(), note_on(), note_on_v(), note_off()
+ */
 void set_output_transpose(uint8_t device, uint16_t output, uint16_t note);
+
+/**
+ * @brief Set the output transpose pitch value for a specific device output, for
+ *        use in conjuction with the multipass mapped voice note triggering
+ *        functions.
+ * 
+ * @param device Device identifier value between 0 and MAX_DEVICE_COUNT - 1.
+ *        For valid values, see the #define VOICE_… values (e.g. VOICE_CV_GATE)
+ *        at the top of this file.
+ * @param output Device output to transpose
+ * @param pitch Pitch amount to transpose the output by. A valid value is
+ *        between -16,384 and 16,383.
+ * 
+ * @see map_voice(), note(), note_v(), note_on(), note_on_v(), note_off()
+ */
 void set_output_transpose_v(uint8_t device, uint16_t output, int16_t pitch);
+
+/**
+ * @brief Set the output maximum volume for a specific device output, for
+ *        use in conjuction with the multipass mapped voice note triggering
+ *        functions. Maximum volume applies to devices that support a volume
+ *        range: VOICE_ER301, VOICE_JF, and VOICE_TXO_NOTE.
+ * 
+ * @param device Device identifier value between 0 and MAX_DEVICE_COUNT - 1.
+ *        For valid values, see the #define VOICE_… values (e.g. VOICE_CV_GATE)
+ *        at the top of this file.
+ * @param output Device output to update
+ * @param volume Maximum volume value between 0 and MAX_LEVEL
+ * 
+ * @see map_voice(), note(), note_v(), note_on(), note_on_v(), note_off()
+ */
 void set_output_max_volume(uint8_t device, uint16_t output, uint16_t volume);
 
 
