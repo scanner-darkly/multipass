@@ -589,7 +589,27 @@ void set_er301_cv(uint8_t output, int16_t value);
  */
 void set_er301_gate(uint8_t output, uint8_t on);
 
+/**
+ * @brief Set the mode on a connected Just Friends module via I2C. Used to
+ *        switch Just Friends between a default behaviour and an alternate
+ *        operating mode that provides access to it's alternate personalities of
+ *        Synthesis, a polyphonic synthesizer (while in mode 1, and JF is set to
+ *        "sound"), and Geode a rhythm machine (while in mode 1, and JF is set
+ *        to "shape").
+ * 
+ * @param mode 0 default behaviour
+ *             1 activates alternate modes with any non-zero value treated as 1
+ */
 void set_jf_mode(uint8_t mode);
+
+/**
+ * @brief Set the value of the indicated CV gate output on a connected Just
+ *        Friends via I2C.
+ * 
+ * @param output Just Friends CV gate output number
+ * @param on 0 CV gate output is low,
+ *           1 CV gate output is high
+ */
 void set_jf_gate(uint8_t output, uint8_t on);
 
 void set_txo_mode(uint8_t output, uint8_t mode);
