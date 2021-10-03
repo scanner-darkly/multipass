@@ -708,6 +708,41 @@ void refresh_screen(void);
 // other
 
 void set_led(uint8_t index, uint8_t level);
+
+/**
+ * @brief Set the debug state. When the debug state is set to on, the print
+ *        functions become available to print logs to the
+ *        [serial port](https://github.com/monome/libavr32#serial-port) of the
+ *        Monome hardware. 
+ * 
+ * @param on 0 debug is off
+ *           1 debug is on
+ */
 void set_debug(uint8_t on);
+
+/**
+ * @brief Print a string to the serial port. Requires the debug state to be set
+ *        on.
+ * 
+ * @param str String value to print
+ * 
+ * @see set_debug()
+ */
 void print_debug(const char *str);
+
+/**
+ * @brief Print an integer value to the serial port. Requires the debug state to
+ *        be set on.
+ *        Example output of str = "CV 1", value = 100:
+ *        ```
+ *        
+ *        CV 1 [100]
+ *        ```
+ * 
+ * @param str A string that can be prepended when printing the integer value for
+ *        example to describe the value
+ * @param value Integer value to print
+ * 
+ * @see set_debug()
+ */
 void print_int(const char *str, int16_t value);
