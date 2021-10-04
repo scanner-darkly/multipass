@@ -698,9 +698,47 @@ void load_shared_data_from_flash(shared_data_t *shared);
 // ----------------------------------------------------------------------------
 // screen
 
+/**
+ * @brief Clears all lines of the screen. Call `refresh_screen()` to display the
+ *        results. Applies to Teletype module.
+ * 
+ * @see refresh_screen()
+ */
 void clear_screen(void);
+
+/**
+ * @brief Fills a line of the screen with the indicated color. Call
+ *        `refresh_screen()` to display the results. Applies to Teletype module.
+ * 
+ * @param line Line number to fill. A valid value is between 0 and
+ *        SCREEN_LINE_COUNT - 1.
+ * @param colour Colour value to fill. A valid value is between 0 and 15.
+ * 
+ * @see refresh_screen()
+ */
 void fill_line(uint8_t line, uint8_t colour);
+
+/**
+ * @brief Draws a string value to the screen at the indicated line. Call
+ *        `refresh_screen()` to display the results. Applies to Teletype module.
+ * 
+ * @param str String value to draw
+ * @param line Line number of screen to draw to. A valid value is between 0 and
+ *        SCREEN_LINE_COUNT - 1
+ * @param colour Colour value to draw the string. A valid value is between 0 and
+ *        15.
+ * @param background Background colour value to draw the string on top of. A
+ *        valid value is between 0 and 15.
+ * 
+ * @see refresh_screen()
+ */
 void draw_str(const char* str, uint8_t line, uint8_t colour, uint8_t background);
+
+/**
+ * @brief Refresh the displayed content of the screen.  Applies to Teletype
+ *        module.
+ * 
+ */
 void refresh_screen(void);
 
 
