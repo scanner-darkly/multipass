@@ -107,16 +107,16 @@ uint64_t get_global_time(void);
 /**
  * @brief Check if hardware has a CV clock input
  * 
- * @return uint8_t Returns 0 if hardware does not have CV clock input,
- *         uint8_t Returns 1 if hardware has CV clock input
+ * @return uint8_t Returns 0 if hardware does not have CV clock input
+ * @return uint8_t Returns 1 if hardware has CV clock input
  */
 uint8_t has_clock_input(void);
 
 /**
  * @brief Check if external CV clock input is connected
  * 
- * @return uint8_t Returns 0 if external CV clock is not connected,
- *         uint8_t Returns 1 if external CV clock is connected
+ * @return uint8_t Returns 0 if external CV clock is not connected
+ * @return uint8_t Returns 1 if external CV clock is connected
  */
 uint8_t is_external_clock_connected(void);
 
@@ -160,8 +160,8 @@ uint8_t get_gate_input_count(void);
  * @brief Get the CV gate value for the provided input index.
  * 
  * @param index Hardware CV gate input number (first input is index 0)
- * @return uint8_t Returns 0 when CV gate input is low,
- *         uint8_t Returns 1 when CV gate input is high
+ * @return uint8_t Returns 0 when CV gate input is low
+ * @return uint8_t Returns 1 when CV gate input is high
  */
 uint8_t get_gate(uint8_t index);
 
@@ -216,8 +216,8 @@ uint8_t get_button_count(void);
  * @brief Get the button press status for the button at the indicated index
  * 
  * @param index Button number (first button is index 0)
- * @return uint8_t Returns 0 button not pressed,
- *         uint8_t Returns 1 button pressed
+ * @return uint8_t Returns 0 button not pressed
+ * @return uint8_t Returns 1 button pressed
  */
 uint8_t is_button_pressed(uint8_t index);
 
@@ -232,7 +232,7 @@ uint8_t get_knob_count(void);
  * @brief Get the knob value for the provided knob index.
  * 
  * @param index Hardware knob number (first know is index 0)
- * @return uint16_t Returns 
+ * @return uint16_t Returns value of the knob
  */
 uint16_t get_knob_value(uint8_t index);
 
@@ -243,8 +243,8 @@ uint16_t get_knob_value(uint8_t index);
 /**
  * @brief Check if a Monome grid is connected
  * 
- * @return uint8_t Returns 0 if Monome grid is not connected,
- *         uint8_t Returns 1 if Monome grid is connected
+ * @return uint8_t Returns 0 if Monome grid is not connected
+ * @return uint8_t Returns 1 if Monome grid is connected
  */
 uint8_t is_grid_connected(void);
 
@@ -266,7 +266,8 @@ uint8_t get_grid_row_count(void);
  * @brief Check if the connected Monome grid is capable of variable brightness
  * 
  * @return uint8_t Returns 0 if connected Monome grid is not capable of
- *         variable brightness, return 1 if connected Monome grid is capable of
+ *         variable brightness
+ * @return uint8_t Returns 1 if connected Monome grid is capable of
  *         variable brightness
  */
 uint8_t is_grid_vb(void);
@@ -283,7 +284,7 @@ void clear_all_grid_leds(void);
  * @param x The x-coordinate of the LED
  * @param y The y-coordinate of the LED
  * @return uint8_t Returns the level of the LED at the provided coordinates.
- *         Valid values between 0 and 15, 0 = off, 15 = full level
+ *         A valid value is between 0 and 15, 0 = off, 15 = full level
  */
 uint8_t get_grid_led(uint8_t x, uint8_t y);
 
@@ -302,7 +303,7 @@ void set_grid_led(uint8_t x, uint8_t y, uint8_t level);
  *        index
  * 
  * @param index Index of the LED to update
- * @param level The lvel of the LED to update. Valid values between 0 and 15,
+ * @param level The level of the LED to update. Valid values between 0 and 15,
  *        0 = off, 15 = full level
  */
 void set_grid_led_i(uint16_t index, uint8_t level);
@@ -316,8 +317,8 @@ void refresh_grid(void);
 /**
  * @brief Check if a Monome arc is connected
  * 
- * @return uint8_t Returns 0 if Monome arc is not connected,
- *         uint8_t Returns 1 if Monome arc is connected
+ * @return uint8_t Returns 0 if Monome arc is not connected
+ * @return uint8_t Returns 1 if Monome arc is connected
  */
 uint8_t is_arc_connected(void);
 
@@ -339,8 +340,8 @@ void clear_all_arc_leds(void);
  * 
  * @param enc The encoder number
  * @param led The LED number
- * @return uint8_t Return the level of the LED at the provided location. Valid
- *         values between 0 and 15, 0 = off, 15 = full level
+ * @return uint8_t Return the level of the LED at the provided location. A valid
+ *         value is between 0 and 15, 0 = off, 15 = full level
  */
 uint8_t get_arc_led(uint8_t enc, uint8_t led);
 
@@ -367,8 +368,8 @@ void refresh_arc(void);
 /**
  * @brief Check if a MIDI device is connected
  * 
- * @return uint8_t Returns 0 if a MIDI device is not connected,
- *         uint8_t Returns 1 if a MIDI device is connected
+ * @return uint8_t Returns 0 if a MIDI device is not connected
+ * @return uint8_t Returns 1 if a MIDI device is connected
  */
 uint8_t is_midi_connected(void);
 
@@ -483,9 +484,14 @@ void note_off(uint8_t voice);
  *        0 mapped voice -> device output is off
  *        1 mapped voice -> device output is on
  * 
- * @see note(), note_v(), note_on(), note_on_v(), note_off(),
- *      set_output_transpose(), set_output_transpose_v(),
- *      set_output_max_volume()
+ * @see note()
+ * @see note_v()
+ * @see note_on()
+ * @see note_on_v()
+ * @see note_off()
+ * @see set_output_transpose()
+ * @see set_output_transpose_v()
+ * @see set_output_max_volume()
  */
 void map_voice(uint8_t voice, uint8_t device, uint8_t output, uint8_t on);
 
@@ -501,7 +507,12 @@ void map_voice(uint8_t voice, uint8_t device, uint8_t output, uint8_t on);
  * @param note The chromatic note amount to transpose the output by. Standard
  *        MIDI note values apply.
  * 
- * @see map_voice(), note(), note_v(), note_on(), note_on_v(), note_off()
+ * @see map_voice()
+ * @see note()
+ * @see note_v()
+ * @see note_on()
+ * @see note_on_v()
+ * @see note_off()
  */
 void set_output_transpose(uint8_t device, uint16_t output, uint16_t note);
 
@@ -517,7 +528,12 @@ void set_output_transpose(uint8_t device, uint16_t output, uint16_t note);
  * @param pitch Pitch amount to transpose the output by. A valid value is
  *        between -16,384 and 16,383.
  * 
- * @see map_voice(), note(), note_v(), note_on(), note_on_v(), note_off()
+ * @see map_voice()
+ * @see note()
+ * @see note_v()
+ * @see note_on()
+ * @see note_on_v()
+ * @see note_off()
  */
 void set_output_transpose_v(uint8_t device, uint16_t output, int16_t pitch);
 
@@ -533,7 +549,12 @@ void set_output_transpose_v(uint8_t device, uint16_t output, int16_t pitch);
  * @param output Device output to update
  * @param volume Maximum volume value between 0 and MAX_LEVEL
  * 
- * @see map_voice(), note(), note_v(), note_on(), note_on_v(), note_off()
+ * @see map_voice()
+ * @see note()
+ * @see note_v()
+ * @see note_on()
+ * @see note_on_v()
+ * @see note_off()
  */
 void set_output_max_volume(uint8_t device, uint16_t output, uint16_t volume);
 
@@ -552,7 +573,12 @@ void set_output_max_volume(uint8_t device, uint16_t output, uint16_t volume);
  *        0 device is not muted
  *        1 device is muted
  * 
- * @see map_voice(), note(), note_v(), note_on(), note_on_v(), note_off()
+ * @see map_voice()
+ * @see note()
+ * @see note_v()
+ * @see note_on()
+ * @see note_on_v()
+ * @see note_off()
  */
 void mute_device(uint8_t device, uint8_t mute);
 
@@ -694,7 +720,6 @@ void load_preset_from_flash(uint8_t index, preset_data_t *preset);
 void load_preset_meta_from_flash(uint8_t index, preset_meta_t *meta);
 void load_shared_data_from_flash(shared_data_t *shared);
 
-
 // ----------------------------------------------------------------------------
 // screen
 
@@ -712,7 +737,8 @@ void clear_screen(void);
  * 
  * @param line Line number to fill. A valid value is between 0 and
  *        SCREEN_LINE_COUNT - 1.
- * @param colour Colour value to fill. A valid value is between 0 and 15.
+ * @param colour Colour value to fill. A valid value is between 0 and 15,
+ *        0 = off, 15 = full level
  * 
  * @see refresh_screen()
  */
@@ -726,16 +752,16 @@ void fill_line(uint8_t line, uint8_t colour);
  * @param line Line number of screen to draw to. A valid value is between 0 and
  *        SCREEN_LINE_COUNT - 1
  * @param colour Colour value to draw the string. A valid value is between 0 and
- *        15.
+ *        15, 0 = off, 15 = full level
  * @param background Background colour value to draw the string on top of. A
- *        valid value is between 0 and 15.
+ *        valid value is between 0 and 15, 0 = off, 15 = full level
  * 
  * @see refresh_screen()
  */
 void draw_str(const char* str, uint8_t line, uint8_t colour, uint8_t background);
 
 /**
- * @brief Refresh the displayed content of the screen.  Applies to Teletype
+ * @brief Refresh the displayed content of the screen. Applies to Teletype
  *        module.
  * 
  */
@@ -772,10 +798,9 @@ void print_debug(const char *str);
  * @brief Print an integer value to the serial port. Requires the debug state to
  *        be set on.
  *        Example output of str = "CV 1", value = 100:
- *        ```
- *        
- *        CV 1 [100]
- *        ```
+ * 
+ *            
+ *     CV 1 [100]
  * 
  * @param str A string that can be prepended when printing the integer value for
  *        example to describe the value
