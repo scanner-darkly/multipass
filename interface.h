@@ -712,7 +712,25 @@ void set_txo_decay(uint8_t output, uint16_t decay);
  */
 void set_txo_waveform(uint8_t output, uint16_t waveform);
 
+/**
+ * @brief Read the value of the indicated input on a connected TELEXi module via
+ *        I2C.
+ * 
+ * @param input TELEXi input number. A valid value is between 0 and
+ *        MAX_TXI_INPUT - 1
+ * @return int16_t Returns the inputs current CV value represented as a signed
+ *         integer with a range of -16,384 (-10v) and 16,383 (+10v)
+ */
 int16_t get_txi_input(uint8_t input);
+
+/**
+ * @brief Read the value of the indicated knob on a connected TELEXi module via
+ *        I2C.
+ * 
+ * @param param TELEXi param knob number. A valid value is between 0 and
+ *        MAX_TXI_INPUT - 1
+ * @return uint16_t Returns a value between 0 and 255.
+ */
 uint16_t get_txi_param(uint8_t param);
 
 
