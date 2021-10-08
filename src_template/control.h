@@ -18,12 +18,38 @@
 // ----------------------------------------------------------------------------
 // shared types
 
+/**
+ * @brief Preset meta data which is associated with a preset. This structure is
+ *        useful for storing things like a glyph or a note that will help
+ *        describe or display a preset, but is not the preset itself.
+ * 
+ * @see preset_data_t
+ */
 typedef struct {
 } preset_meta_t;
 
+/**
+ * @brief Shared application data, useful for storing things like settings and
+ *        modes of the hardware, global application state, and things that
+ *        should not change when switching presets. For example I2C
+ *        leader/follower mode, application operating modes, or maybe optional
+ *        override settings like a global transpose/scale. 
+ * 
+ */
 typedef struct {
 } shared_data_t;
 
+/**
+ * @brief Preset data used to store values describing the current state of the
+ *        application and capable of being stored and loaded to/from flash. Used
+ *        along with `preset_meta_t` and `shared_data_t`, these data structures
+ *        encapsulate the majority of statefulness of the application. Useful
+ *        for storing things like patterns/sequences, voices, mappings, volume,
+ *        timings, pitch, etc.
+ * 
+ * @see preset_meta_t
+ * @see shared_data_t
+ */
 typedef struct {
 } preset_data_t;
 
@@ -35,7 +61,32 @@ typedef struct {
 // ----------------------------------------------------------------------------
 // functions control.c needs to implement (will be called from main.c)
 
+/**
+ * @brief Called implicitly by Multipass at startup if the hardware flash is
+ *        new and there are no presets stored to flash. This function is the
+ *        applications opportunity to initialize the flash with application
+ *        appropriate preset structs and shared data in default state. Once
+ *        initialized, Multipass will no longer call this function at startup.
+ * 
+ * @see is_flash_new()
+ * @see store_preset_to_flash()
+ * @see store_shared_data_to_flash()
+ * @see store_preset_index()
+ * @see preset_data_t
+ * @see preset_meta_t
+ * @see shared_data_t
+ */
 void init_presets(void);
+
+/**
+ * @brief Called implicitly by Multipass at application startup. This function
+ *        is the applications opportunity to load shared data, load a preset and
+ *        meta data, set up any initial application values, and set up timers.
+ * 
+ * @see load_shared_data_from_flash()
+ * @see load_preset_from_flash()
+ * @see load_preset_meta_from_flash()
+ */
 void init_control(void);
 void process_event(u8 event, u8 *data, u8 length);
 void render_grid(void);
