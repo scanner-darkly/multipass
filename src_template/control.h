@@ -88,6 +88,18 @@ void init_presets(void);
  * @see load_preset_meta_from_flash()
  */
 void init_control(void);
+
+/**
+ * @brief Implement event handling code for your application here. This function
+ *        is called by Multipass when an event happens. Here your application
+ *        has the opportunity to respond to these events. See `interface.h`
+ *        events macro definition section for a list of event identifier macros,
+ *        data, and length documentation.
+ * 
+ * @param event Event identifier
+ * @param data Pointer to event data
+ * @param length Length of event data
+ */
 void process_event(u8 event, u8 *data, u8 length);
 
 /**
