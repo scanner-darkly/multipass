@@ -21,12 +21,12 @@
 // ----------------------------------------------------------------------------
 // voice mapping
 
-#define VOICE_CV_GATE     0
-#define VOICE_ER301       1
-#define VOICE_JF          2
-#define VOICE_TXO_NOTE    3
-#define VOICE_TXO_CV_GATE 4
-#define MAX_DEVICE_COUNT  5
+#define VOICE_CV_GATE     0 /**< Voice mapping identifier for internal Monome hardware CV/Gate output pair */
+#define VOICE_ER301       1 /**< Voice mapping identifier for the [Orthogonal Devices ER-301](http://www.orthogonaldevices.com/er-301) */
+#define VOICE_JF          2 /**< Voice mapping identifier for the [Mannequins Just Friends](https://www.whimsicalraps.com/products/mangrove) */
+#define VOICE_TXO_NOTE    3 /**< Voice mapping identifier for the [TELEXo](https://github.com/bpcmusic/telex) in sound mode */
+#define VOICE_TXO_CV_GATE 4 /**< Voice mapping identifier for the [TELEXo](https://github.com/bpcmusic/telex) CV/Gate mode */
+#define MAX_DEVICE_COUNT  5 /**< Number of voice mappable devices */
 
 
 // ----------------------------------------------------------------------------
@@ -479,8 +479,8 @@ void note_off(uint8_t voice);
  * @param voice Value used to register and identify the voice. Valid values are
  *        between 0 and MAX_VOICE_COUNT - 1
  * @param device Device identifier value between 0 and MAX_DEVICE_COUNT - 1.
- *        For valid values, see the #define VOICE_… values (e.g. VOICE_CV_GATE)
- *        at the top of this file.
+ *        For valid values, see the voice mapping macros values (e.g. @ref
+ *        VOICE_CV_GATE) at the top of this file.
  * @param output Device output that the multipass voice should map to
  * @param on Value indicating if the mapping should be on or off. When set to
  *        off, the device output will not trigger when the voice is updated.
@@ -504,8 +504,8 @@ void map_voice(uint8_t voice, uint8_t device, uint8_t output, uint8_t on);
  *        functions.
  * 
  * @param device Device identifier value between 0 and MAX_DEVICE_COUNT - 1.
- *        For valid values, see the #define VOICE_… values (e.g. VOICE_CV_GATE)
- *        at the top of this file.
+ *        For valid values, see the voice mapping macros values (e.g. @ref
+ *        VOICE_CV_GATE) at the top of this file.
  * @param output The device output to transpose
  * @param note The chromatic note amount to transpose the output by. Standard
  *        MIDI note values apply.
@@ -524,9 +524,9 @@ void set_output_transpose(uint8_t device, uint16_t output, uint16_t note);
  *        use in conjuction with the multipass mapped voice note triggering
  *        functions.
  * 
- * @param device Device identifier value between 0 and MAX_DEVICE_COUNT - 1.
- *        For valid values, see the #define VOICE_… values (e.g. VOICE_CV_GATE)
- *        at the top of this file.
+ * @param device Device identifier value between 0 and @ref MAX_DEVICE_COUNT - 1.
+ *        For valid values, see the voice mapping macros values (e.g. @ref
+ *        VOICE_CV_GATE) at the top of this file.
  * @param output Device output to transpose
  * @param pitch Pitch amount to transpose the output by. A valid value is
  *        between -16,384 and 16,383.
@@ -544,11 +544,11 @@ void set_output_transpose_v(uint8_t device, uint16_t output, int16_t pitch);
  * @brief Set the output maximum volume for a specific device output, for
  *        use in conjuction with the multipass mapped voice note triggering
  *        functions. Maximum volume applies to devices that support a volume
- *        range: VOICE_ER301, VOICE_JF, and VOICE_TXO_NOTE.
+ *        range: @ref VOICE_ER301, @ref VOICE_JF, and @ref VOICE_TXO_NOTE.
  * 
  * @param device Device identifier value between 0 and MAX_DEVICE_COUNT - 1.
- *        For valid values, see the #define VOICE_… values (e.g. VOICE_CV_GATE)
- *        at the top of this file.
+ *        For valid values, see the voice mapping macros values (e.g. @ref
+ *        VOICE_CV_GATE) at the top of this file.
  * @param output Device output to update
  * @param volume Maximum volume value between 0 and @ref MAX_LEVEL (16,383)
  * 
@@ -570,8 +570,8 @@ void set_output_max_volume(uint8_t device, uint16_t output, uint16_t volume);
  *        multipass mapped voice note triggering functions.
  * 
  * @param device Device identifier value between 0 and MAX_DEVICE_COUNT - 1.
- *        For valid values, see the #define VOICE_… values (e.g. VOICE_CV_GATE)
- *        at the top of this file.
+ *        For valid values, see the voice mapping macros values (e.g. @ref
+ *        VOICE_CV_GATE) at the top of this file.
  * @param mute Value indicating if the mapped voice should be muted or not.
  *        0 device is not muted
  *        1 device is muted
