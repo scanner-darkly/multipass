@@ -1,11 +1,11 @@
-// ----------------------------------------------------------------------------
-// defines functions for multipass to send events to the controller (grid 
-// presses etc)
-//
-// defines functions for engine to send updates (note on etc)
-//
-// defines data structures for multipass preset management
-// ----------------------------------------------------------------------------
+/**
+ * @file control.h
+ * 
+ * @brief Defines functions for Multipass to send events to the controller (grid
+ *        presses etc). Defines functions for engine to send updates (note on,
+ *        etc.). Defines data structures for Multipass preset management.
+ * 
+ */
 
 #pragma once
 #include "types.h"
