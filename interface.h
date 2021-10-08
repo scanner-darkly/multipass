@@ -871,6 +871,14 @@ void refresh_screen(void);
 // ----------------------------------------------------------------------------
 // other
 
+/**
+ * @brief Set the state of the LEDs on the Monome hardware. Ansible is the only
+ *        module that has individually addressable LEDs.
+ * 
+ * @param index Hardware LED number. A valid value is between 0 and
+ *        _HARDWARE_LED_COUNT - 1.
+ * @param level FIXME: Unclear how to describe this. 
+ */
 void set_led(uint8_t index, uint8_t level);
 
 /**
