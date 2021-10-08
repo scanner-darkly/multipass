@@ -15,7 +15,7 @@
 
 #include "control.h"
 
-#define MAX_LEVEL 16383
+#define MAX_LEVEL 16383 /**< Maximum CV level value */
 
 
 // ----------------------------------------------------------------------------
@@ -406,7 +406,7 @@ uint16_t note_to_pitch(uint16_t note);
  *        considered the equivalent of a note off.
  *        Monome hardware, TELEXo CV/Gate: A value of 0 or  >= 1
  *        ER301, Just Friends, TELEXo note (sound source): A value between 0
- *        and MAX_LEVEL (16,383)
+ *        and @ref MAX_LEVEL (16,383)
  * @param on 0 if note should be off,
  *           1 if note should be on
  */
@@ -424,7 +424,7 @@ void note(uint8_t voice, uint16_t note, uint16_t volume, uint8_t on);
  *        considered the equivalent of a note off.
  *        Monome hardware, TELEXo CV/Gate: A value of 0 or  >= 1
  *        ER301, Just Friends, TELEXo note (sound source): A value between 0
- *        and MAX_LEVEL (16,383)
+ *        and @ref MAX_LEVEL (16,383)
  * @param on 0 if note should be off,
  *           1 if note should be on
  */
@@ -439,7 +439,7 @@ void note_v(uint8_t voice, int16_t pitch, uint16_t volume, uint8_t on);
  *        considered the equivalent of a note off.
  *        Monome hardware, TELEXo CV/Gate: A value of 0 or  >= 1
  *        ER301, Just Friends, TELEXo note (sound source): A value between 0
- *        and MAX_LEVEL (16,383)
+ *        and @ref MAX_LEVEL (16,383)
  */
 void note_on(uint8_t voice, uint16_t note, uint16_t volume);
 
@@ -455,7 +455,7 @@ void note_on(uint8_t voice, uint16_t note, uint16_t volume);
  *        considered the equivalent of a note off.
  *        Monome hardware, TELEXo CV/Gate: A value of 0 or  >= 1
  *        ER301, Just Friends, TELEXo note (sound source): A value between 0
- *        and MAX_LEVEL (16,383)
+ *        and @ref MAX_LEVEL (16,383)
  */
 void note_on_v(uint8_t voice, int16_t pitch, uint16_t volume);
 
@@ -550,7 +550,7 @@ void set_output_transpose_v(uint8_t device, uint16_t output, int16_t pitch);
  *        For valid values, see the #define VOICE_… values (e.g. VOICE_CV_GATE)
  *        at the top of this file.
  * @param output Device output to update
- * @param volume Maximum volume value between 0 and MAX_LEVEL
+ * @param volume Maximum volume value between 0 and @ref MAX_LEVEL (16,383)
  * 
  * @see map_voice()
  * @see note()
