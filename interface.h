@@ -23,7 +23,7 @@
 
 #define VOICE_CV_GATE     0 /**< Voice mapping identifier for internal Monome hardware CV/Gate output pair */
 #define VOICE_ER301       1 /**< Voice mapping identifier for the [Orthogonal Devices ER-301](http://www.orthogonaldevices.com/er-301) */
-#define VOICE_JF          2 /**< Voice mapping identifier for the [Mannequins Just Friends](https://www.whimsicalraps.com/products/mangrove) */
+#define VOICE_JF          2 /**< Voice mapping identifier for the [Mannequins Just Friends](https://www.whimsicalraps.com/products/just-friends) */
 #define VOICE_TXO_NOTE    3 /**< Voice mapping identifier for the [TELEXo](https://github.com/bpcmusic/telex) in sound mode */
 #define VOICE_TXO_CV_GATE 4 /**< Voice mapping identifier for the [TELEXo](https://github.com/bpcmusic/telex) CV/Gate mode */
 #define MAX_DEVICE_COUNT  5 /**< Number of voice mappable devices */
