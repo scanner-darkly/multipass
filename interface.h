@@ -708,16 +708,84 @@ uint16_t get_txi_param(uint8_t param);
 // ----------------------------------------------------------------------------
 // flash storage
 
+/**
+ * @brief Checks if Monome hardware flash is new (uninitialized by Multipass) or
+ *        if it has been initialized and presets are capable of being stored or
+ *        loaded.
+ * 
+ * Multipass will implicitly call `is_flash_new()` on startup. If the flash is
+ * uninitialized, the user implemented function `init_presets()` will be called.
+ * Have a look at the example implementation in [src_template](https://github.com/scanner-darkly/multipass/blob/main/src_template/control.c#L31)
+ * 
+ * @return uint8_t Returns 0 if flash is new (uninitialized)
+ * @return uint8_t Returns 1 if flash has been initialized
+ * 
+ * @see init_presets()
+ */
 uint8_t is_flash_new(void);
+
+/**
+ * @brief Get the current preset index.
+ * 
+ * @return uint8_t Returns a value between 0 and PRESET_COUNT - 1
+ */
 uint8_t get_preset_index(void);
+
+/**
+ * @brief Get the number of usable presets
+ * 
+ * @return uint8_t Returns the number of usable presets
+ */
 uint8_t get_preset_count(void);
 
+/**
+ * @brief Store a preset, and meta data at the indicated index.
+ * 
+ * @param index Location to store the preset. A valid value is between 0 and
+ *        PRESET_COUNT - 1.
+ * @param meta Pointer to preset meta data to be stored with the preset
+ * @param preset Pointer to preset data to be stored
+ */
 void store_preset_to_flash(uint8_t index, preset_meta_t *meta, preset_data_t *preset);
+
+/**
+ * @brief Store the index of the current preset.
+ * 
+ * @param index Index value of the current preset. A valid value is between 0
+ *        and PRESET_COUNT - 1.
+ */
 void store_preset_index(uint8_t index);
+
+/**
+ * @brief Store the application shared data to flash.
+ * 
+ * @param shared Pointer to application shared data to be stored.
+ */
 void store_shared_data_to_flash(shared_data_t *shared);
 
+/**
+ * @brief Load a previously stored preset from flash.
+ * 
+ * @param index Index value of the preset to load. A valid value is between 0
+ *        and PRESET_COUNT - 1.
+ * @param preset Pointer to load preset data to.
+ */
 void load_preset_from_flash(uint8_t index, preset_data_t *preset);
+
+/**
+ * @brief Load previously stored preset meta data from flash.
+ * 
+ * @param index Index value of the preset meta data to load. A valid value is
+ *        between 0 and PRESET_COUNT - 1.
+ * @param meta Pointer to load preset meta data to.
+ */
 void load_preset_meta_from_flash(uint8_t index, preset_meta_t *meta);
+
+/**
+ * @brief Load previously stored shared application data from flash.
+ * 
+ * @param shared Pointer to load shared application data to.
+ */
 void load_shared_data_from_flash(shared_data_t *shared);
 
 // ----------------------------------------------------------------------------
