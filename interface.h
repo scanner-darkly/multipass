@@ -231,8 +231,8 @@ uint8_t get_knob_count(void);
 /**
  * @brief Get the knob value for the provided knob index.
  * 
- * @param index Hardware knob number (first know is index 0)
- * @return uint16_t Returns value of the knob
+ * @param index Hardware knob number.
+ * @return uint16_t Returns a value between 0 and 255
  */
 uint16_t get_knob_value(uint8_t index);
 
@@ -600,7 +600,8 @@ void set_as_i2c_follower(uint8_t address);
 /**
  * @brief Set the value of the indicated CV output on a connected ER301 via I2C.
  * 
- * @param output ER301 CV output number
+ * @param output ER301 CV output number. A valid value is between 0 and
+ *        MAX_ER301_OUTPUT_COUNT - 1
  * @param value CV value represented as a signed integer with a range of
  *        -16,384 (-10v) and 16,383 (+10v)
  */
@@ -610,7 +611,8 @@ void set_er301_cv(uint8_t output, int16_t value);
  * @brief Set the value of the indicated CV gate output on a connected ER301 via
  *        I2C.
  * 
- * @param output ER301 CV gate output number
+ * @param output ER301 CV gate output number. A valid value is between 0 and
+ *        MAX_ER301_OUTPUT_COUNT - 1
  * @param on 0 CV gate output is low,
  *           1 CV gate output is high
  */
@@ -633,7 +635,8 @@ void set_jf_mode(uint8_t mode);
  * @brief Set the value of the indicated CV gate output on a connected Just
  *        Friends via I2C.
  * 
- * @param output Just Friends CV gate output number
+ * @param output Just Friends CV gate output number. A valid value is between 0
+ *        and MAX_JF_VOICE_COUNT - 1
  * @param on 0 CV gate output is low,
  *           1 CV gate output is high
  */
@@ -643,10 +646,13 @@ void set_jf_gate(uint8_t output, uint8_t on);
  * @brief Set the envelope mode of the indicated output on a connected TELEXo
  *        module via I2C.
  * 
- * @param output TELEXo CV output number
+ * @param output TELEXo CV output number. A valid value is between 0 and
+ *        MAX_TXO_VOICE_COUNT - 1
  * @param mode TELEXo CV output envelope mode
- *             0 sets output envelope off and initializes it
- *             1 sets output envelope on
+ *             0 sets output to oscillator mode and initializes the output to
+ *             waveform 0 (sine)
+ *             1 sets output to envelope mode
+ * @see set_txo_waveform()
  */
 void set_txo_mode(uint8_t output, uint8_t mode);
 
@@ -654,7 +660,8 @@ void set_txo_mode(uint8_t output, uint8_t mode);
  * @brief Set the CV value of the indicated output on a connected TELEXo module
  *        via I2C.
  * 
- * @param output TELEXo CV output number
+ * @param output TELEXo CV output number. A valid value is between 0 and
+ *        MAX_TXO_VOICE_COUNT - 1
  * @param value CV value represented as a signed integer with a range of
  *        -16,384 (-10v) and 16,383 (+10v)
  */
@@ -664,7 +671,8 @@ void set_txo_cv(uint8_t output, int16_t value);
  * @brief Set the CV gate value of the indicated output on a connected TELEXo
  *        module via I2C.
  * 
- * @param output TELEXo CV gate output number
+ * @param output TELEXo CV gate output number. A valid value is between 0 and
+ *        MAX_TXO_VOICE_COUNT - 1
  * @param on 0 CV gate output is low,
  *           1 CV gate output is high
  */
@@ -674,7 +682,8 @@ void set_txo_gate(uint8_t output, uint8_t on);
  * @brief Set the envelope attack value of the indicated output on a connected
  *        TELEXo module via I2C.
  * 
- * @param output TELEXo output number
+ * @param output TELEXo output number. A valid value is between 0 and
+ *        MAX_TXO_VOICE_COUNT - 1
  * @param attack Output envelope attack rate in milliseconds. A valid value is
  *        between 1 and n
  */
@@ -684,20 +693,22 @@ void set_txo_attack(uint8_t output, uint16_t attack);
  * @brief Set the envelope decay value of the indicated output on a connected
  *        TELEXo module via I2C.
  * 
- * @param output TELEXo output number
+ * @param output TELEXo output number. A valid value is between 0 and
+ *        MAX_TXO_VOICE_COUNT - 1
  * @param decay Output envelope decay rate in milliseconds. A valid value is
  *        between 1 and n
  */
 void set_txo_decay(uint8_t output, uint16_t decay);
 
 /**
- * @brief Set the waveform of the indicated output on a connected TELEXo module
+ * @brief Set the waveform of the indicated CV output in oscillator mode on a connected TELEXo module
  *        via I2C.
  * 
- * @param output TELEXo output number
+ * @param output TELEXo output number. A valid value is between 0 and
+ *        MAX_TXO_VOICE_COUNT - 1
  * @param waveform Desired output waveform. A valid value is between 0 and 325
  *        for TELEXo modules with a Teensy 3.6 and between 0 and 2 for TELEXo
- *        modules with a Teensy 3.2
+ *        modules with a Teensy 3.2. Reference TELEXo wavetables [here](https://github.com/bpcmusic/telex/blob/master/software/TELEXo/Wavetables.h)
  */
 void set_txo_waveform(uint8_t output, uint16_t waveform);
 
