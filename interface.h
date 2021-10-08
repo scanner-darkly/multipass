@@ -1,12 +1,15 @@
-// ----------------------------------------------------------------------------
-// multipass interface for interacting with hardware in a platform agnostic way
-// each supported platform will have its own implementation
-//
-// any apps using multipass should only talk to hardware using functions 
-// defined here
-// 
-// needs control.h for the data types used for preset management
-// ----------------------------------------------------------------------------
+/**
+ * @file interface.h
+ * 
+ * @brief Multipass interface for interacting with hardware in a platform
+ *        agnostic way each supported platform will have its own implementation.
+ * 
+ *        Any apps using Multipass should only talk to hardware using functions 
+ *        defined here.
+ * 
+ *        Needs `control.h` for the data types used for preset management
+ * 
+ */
 
 #pragma once
 
