@@ -2,7 +2,8 @@
  * @file interface.h
  * 
  * @brief Multipass interface for interacting with hardware in a platform
- *        agnostic way each supported platform will have its own implementation.
+ *        agnostic way. Each supported platform will have its own
+ *        implementation.
  * 
  *        Any apps using Multipass should only talk to hardware using functions 
  *        defined here.
@@ -24,8 +25,8 @@
 #define VOICE_CV_GATE     0 /**< Voice mapping identifier for internal Monome hardware CV/Gate output pair */
 #define VOICE_ER301       1 /**< Voice mapping identifier for the [Orthogonal Devices ER-301](http://www.orthogonaldevices.com/er-301) */
 #define VOICE_JF          2 /**< Voice mapping identifier for the [Mannequins Just Friends](https://www.whimsicalraps.com/products/just-friends) */
-#define VOICE_TXO_NOTE    3 /**< Voice mapping identifier for the [TELEXo](https://github.com/bpcmusic/telex) in sound mode */
-#define VOICE_TXO_CV_GATE 4 /**< Voice mapping identifier for the [TELEXo](https://github.com/bpcmusic/telex) CV/Gate mode */
+#define VOICE_TXO_NOTE    3 /**< Voice mapping identifier for the [bpcmusic TELEXo](https://github.com/bpcmusic/telex) in sound mode */
+#define VOICE_TXO_CV_GATE 4 /**< Voice mapping identifier for the [bpcmusic TELEXo](https://github.com/bpcmusic/telex) CV/Gate mode */
 #define MAX_DEVICE_COUNT  5 /**< Number of voice mappable devices */
 
 
@@ -73,7 +74,7 @@
  *
  * @param index Used to register and identify the timed event. Valid values are
  *        between 0 and TIMED_EVENT_COUNT - 1
- * @param ms How often the timed event should be triggered in milliseconds
+ * @param ms The timed event interval in milliseconds
  * @param repeat 0 or 1 value indicating if the timed event should repeat
  *        indefinitely
  */
@@ -143,12 +144,11 @@ void set_clock_output(uint8_t on);
 uint8_t get_cv_input_count(void);
 
 /**
- * @brief Get the CV value for the provided input index. Teletype is currently
- *        the only Monome module that has a CV input.
+ * @brief Get the CV value for the provided input index.
  * 
  * @param index Hardware CV input number (first input is index 0)
  * @return int16_t Returns CV value represented as a signed integer with the
- *         range of -16,384 (-10v) and 16,383 (+10v).
+ *         range of -16,384 (-10v) and @ref MAX_LEVEL (+10v).
  */
 int16_t get_cv(uint8_t index);
 
@@ -162,9 +162,12 @@ uint8_t get_gate_input_count(void);
 /**
  * @brief Get the CV gate value for the provided input index.
  * 
- * @param index Hardware CV gate input number (first input is index 0)
+ * @param index Hardware CV gate input number. A valid value is between 0 and
+ *        the hardware gate input count - 1.
  * @return uint8_t Returns 0 when CV gate input is low
  * @return uint8_t Returns 1 when CV gate input is high
+ * 
+ * @see get_gate_input_count()
  */
 uint8_t get_gate(uint8_t index);
 
@@ -184,7 +187,7 @@ uint8_t get_cv_output_count(void);
  * 
  * @param output index value of the CV output
  * @param value CV value represented as a signed integer with a range of
- *        -16,384 (-10v) and 16,383 (+10v)
+ *        -16,384 (-10v) and @ref MAX_LEVEL (+10v)
  */
 void set_cv(uint8_t output, int16_t value);
 
@@ -235,7 +238,7 @@ uint8_t get_knob_count(void);
  * @brief Get the knob value for the provided knob index.
  * 
  * @param index Hardware knob number.
- * @return uint16_t Returns a value between 0 and 255
+ * @return uint16_t Returns a value between 0 and @ref MAX_LEVEL
  */
 uint16_t get_knob_value(uint8_t index);
 
@@ -415,11 +418,12 @@ void note(uint8_t voice, uint16_t note, uint16_t volume, uint8_t on);
 /**
  * @brief Send pitch, volume, and on/off state to the mapped voice number.
  *        Useful for microtonal scales, where the value maps to output
- *        voltage directly, with a range of -16,384 (-10v) and 16,383 (+10v)
+ *        voltage directly, with a range of -16,384 (-10v) and @ref MAX_LEVEL
+ *        (+10v)
  * 
  * @param voice Number of the mapped voice to send a note on/off to
  * @param pitch Value of the pitch to send. A valid value is between -16,384
- *        and 16,383.
+ *        and @ref MAX_LEVEL.
  * @param volume Volume level of the note. A volume of 0 is always
  *        considered the equivalent of a note off.
  *        Monome hardware, TELEXo CV/Gate: A value of 0 or  >= 1
@@ -446,11 +450,11 @@ void note_on(uint8_t voice, uint16_t note, uint16_t volume);
 /**
  * @brief Send pitch, and volume to the mapped voice number. Useful for
  *        microtonal scales, where the value maps to output voltage directly,
- *        with a range of -16,384 (-10v) and 16,383 (+10v)
+ *        with a range of -16,384 (-10v) and @ref MAX_LEVEL (+10v)
  * 
  * @param voice Number of the mapped voice to send a note on to
  * @param pitch Value of the pitch to send. A valid value is between -16,384
- *        and 16,383.
+ *        and @ref MAX_LEVEL.
  * @param volume Volume level of the note. A volume of 0 is always
  *        considered the equivalent of a note off.
  *        Monome hardware, TELEXo CV/Gate: A value of 0 or  >= 1
@@ -529,7 +533,7 @@ void set_output_transpose(uint8_t device, uint16_t output, uint16_t note);
  *        VOICE_CV_GATE) at the top of this file.
  * @param output Device output to transpose
  * @param pitch Pitch amount to transpose the output by. A valid value is
- *        between -16,384 and 16,383.
+ *        between -16,384 and @ref MAX_LEVEL.
  * 
  * @see map_voice()
  * @see note()
@@ -606,7 +610,7 @@ void set_as_i2c_follower(uint8_t address);
  * @param output ER301 CV output number. A valid value is between 0 and
  *        MAX_ER301_OUTPUT_COUNT - 1
  * @param value CV value represented as a signed integer with a range of
- *        -16,384 (-10v) and 16,383 (+10v)
+ *        -16,384 (-10v) and @ref MAX_LEVEL (+10v)
  */
 void set_er301_cv(uint8_t output, int16_t value);
 
@@ -666,7 +670,7 @@ void set_txo_mode(uint8_t output, uint8_t mode);
  * @param output TELEXo CV output number. A valid value is between 0 and
  *        MAX_TXO_VOICE_COUNT - 1
  * @param value CV value represented as a signed integer with a range of
- *        -16,384 (-10v) and 16,383 (+10v)
+ *        -16,384 (-10v) and @ref MAX_LEVEL (+10v)
  */
 void set_txo_cv(uint8_t output, int16_t value);
 
@@ -688,7 +692,7 @@ void set_txo_gate(uint8_t output, uint8_t on);
  * @param output TELEXo output number. A valid value is between 0 and
  *        MAX_TXO_VOICE_COUNT - 1
  * @param attack Output envelope attack rate in milliseconds. A valid value is
- *        between 1 and n
+ *        between 1 and UINT16_MAX
  */
 void set_txo_attack(uint8_t output, uint16_t attack);
 
@@ -699,7 +703,7 @@ void set_txo_attack(uint8_t output, uint16_t attack);
  * @param output TELEXo output number. A valid value is between 0 and
  *        MAX_TXO_VOICE_COUNT - 1
  * @param decay Output envelope decay rate in milliseconds. A valid value is
- *        between 1 and n
+ *        between 1 and UINT16_MAX
  */
 void set_txo_decay(uint8_t output, uint16_t decay);
 
@@ -709,9 +713,14 @@ void set_txo_decay(uint8_t output, uint16_t decay);
  * 
  * @param output TELEXo output number. A valid value is between 0 and
  *        MAX_TXO_VOICE_COUNT - 1
- * @param waveform Desired output waveform. A valid value is between 0 and 325
- *        for TELEXo modules with a Teensy 3.6 and between 0 and 2 for TELEXo
- *        modules with a Teensy 3.2. Reference TELEXo wavetables [here](https://github.com/bpcmusic/telex/blob/master/software/TELEXo/Wavetables.h)
+ * @param waveform Desired output waveform. For TELEXo modules with a Teensy 3.2
+ *        a valid value is between 0 and 4,999; values translate to sine (0),
+ *        triangle (1000), saw (2000), pulse (3000), or noise (4000). For TELEXo
+ *        modules with a Teensy 3.6 a valid value is between 0 and 4,500; there
+ *        are 45 different waveforms where values translate to sine (0),
+ *        triangle (100), saw (200), pulse (300), all the way to
+ *        random/noise (4500). For both Teensy 3.2 and 3.6, the oscillator shape
+ *        between values is a blend of the pure waveforms. 
  */
 void set_txo_waveform(uint8_t output, uint16_t waveform);
 
@@ -722,7 +731,7 @@ void set_txo_waveform(uint8_t output, uint16_t waveform);
  * @param input TELEXi input number. A valid value is between 0 and
  *        MAX_TXI_INPUT - 1
  * @return int16_t Returns the inputs current CV value represented as a signed
- *         integer with a range of -16,384 (-10v) and 16,383 (+10v)
+ *         integer with a range of -16,384 (-10v) and @ref MAX_LEVEL (+10v)
  */
 int16_t get_txi_input(uint8_t input);
 
@@ -732,7 +741,7 @@ int16_t get_txi_input(uint8_t input);
  * 
  * @param param TELEXi param knob number. A valid value is between 0 and
  *        MAX_TXI_INPUT - 1
- * @return uint16_t Returns a value between 0 and 255.
+ * @return uint16_t Returns a value between 0 and @ref MAX_LEVEL.
  */
 uint16_t get_txi_param(uint8_t param);
 
@@ -877,7 +886,8 @@ void refresh_screen(void);
  * 
  * @param index Hardware LED number. A valid value is between 0 and
  *        _HARDWARE_LED_COUNT - 1.
- * @param level FIXME: Unclear how to describe this. 
+ * @param level Sets the LED status. O is off. 1 is orange. 2 is white. 3 is
+ *        orange/white.
  */
 void set_led(uint8_t index, uint8_t level);
 

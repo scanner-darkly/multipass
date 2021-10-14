@@ -105,18 +105,24 @@ void process_event(u8 event, u8 *data, u8 length);
 /**
  * @brief Implement Monome grid LED rendering code for your application here. If
  *        your application does not use the Monome grid, you can leave this
- *        function blank. This function is called by Multipass at a rate of
- *        MONOME_REFRESH_INTERVAL if a Monome grid is connected to the hardware.
+ *        function blank. To refresh what is rendered on a connected Monome
+ *        grid, your application should call `refresh_grid()`. Multipass will
+ *        check for a refresh grid request at an interval of
+ *        MONOME_REFRESH_INTERVAL and call this function if needed.
  * 
+ * @see refresh_grid()
  */
 void render_grid(void);
 
 /**
  * @brief Implement Monome arc LED rendering code for your application here. If
  *        your application does not use the Monome arc, you can leave this
- *        function blank. This function is called by Multipass at a rate of
- *        MONOME_REFRESH_INTERVAL if a Monome arc is connected to the hardware.
+ *        function blank. To refresh what is rendered on a connected Monome
+ *        arc, your application should call `refresh_arc()`. Multipass will
+ *        check for a refresh arc request at an interval of
+ *        MONOME_REFRESH_INTERVAL and call this function if needed.
  * 
+ * @see refresh_arc()
  */
 void render_arc(void);
 
