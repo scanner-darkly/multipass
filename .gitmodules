@@ -1,4 +1,4 @@
 [submodule "monome_euro/libavr32"]
 	path = monome_euro/libavr32
-	url = https://github.com/scanner-darkly/libavr32.git
-	branch = multipass
+	url = https://github.com/monome/libavr32.git
+	branch = main
