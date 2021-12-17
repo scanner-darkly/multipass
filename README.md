@@ -50,7 +50,7 @@ there are 2 workflows currently provided: `build firmware` and `upload release`.
 
 `build firmware` has to be triggered manually but you can change it to trigger on each commit or pull request. a build typically takes 30-60 seconds. if there are no errors, it will build firmware for each specified module and upload hex files as artifacts to the workflow run (unfortunately, github will zip them when you download, simply unpack once you download them). the provided template targets teletype and ansible only, if you want to build for other modules simply edit `module` parameter under `matrix` in the .yml file.
 
-`upload release` is triggered automatically when you create a new release. it will build firmware for each specified module and upload both hex and zip versions to your release as assets.
+`upload release` is triggered automatically when you create a new release. it will build firmware for each specified module and upload both hex and zip versions to your release as assets. **important**: unlike the previous action, this action will reference the commit the release tag is pointing to, not the latest commit!
 
 both workflows will use the name of your repo for firmware files, if you prefer a different name simply modify the workflow templates.
 
