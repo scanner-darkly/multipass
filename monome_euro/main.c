@@ -92,12 +92,18 @@
 #define MAX_EVENT_DATA_LENGTH 16
 
 #define ET_NOTE_COUNT 128 // ET is defined in music.h
-#define MAX_VOICES_COUNT 80
-#define MAX_OUTPUT_COUNT 16 // max outputs per device for note mapping
-#define MAX_TXO_VOICE_COUNT 16 //  max 4 devices x 4 voices
-#define MAX_JF_VOICE_COUNT 6
-#define MAX_ER301_VOICE_COUNT 16
-#define MAX_ER301_OUTPUT_COUNT 100
+
+#define MAX_VOICES_COUNT 32 // max number of voices available for voice mapping
+#define MAX_OUTPUT_COUNT 8 // max number of device outputs that can be assigned to the same voice
+
+#define MAX_ER301_OUTPUT_COUNT 16
+#define MAX_JF_OUTPUT_COUNT 6
+#define MAX_TXO_OUTPUT_COUNT 16 // up to 4 devices x 4 outputs each
+#define MAX_DISTING_EX_OUTPUT_COUNT 32 // up to 4 devices x 8 voices each
+#define MAX_EX_MIDI_1_OUTPUT_COUNT 16 // up to 16 "outputs" for 1 channel MIDI mode
+#define MAX_EX_MIDI_CH_OUTPUT_COUNT 16 // up to 16 MIDI channels for multi channel MIDI mode
+
+#define MAX_ER301_COUNT 100
 #define MAX_TXI_COUNT 16
 
 #define TO_TR 0x00
@@ -158,7 +164,7 @@ static struct txo_refresh_t {
     u16 attack;
     u16 decay;
     u16 waveform;
-} txo_refresh[MAX_TXO_VOICE_COUNT];
+} txo_refresh[MAX_TXO_OUTPUT_COUNT];
 
 static u8 _debug = 0;
 static u8 control_initialized;
@@ -186,17 +192,24 @@ static u8 button_pressed[_HARDWARE_BUTTON_COUNT];
 static u8 gate_input_values[_HARDWARE_GATE_INPUT_COUNT];
 
 static s16 cv_values[MAX_CV_COUNT];
-static u8 voice_maps[MAX_VOICES_COUNT][MAX_DEVICE_COUNT][MAX_OUTPUT_COUNT/8];
+static u8 voice_maps[MAX_VOICES_COUNT][MAX_DEVICE_COUNT][MAX_OUTPUT_COUNT >> 3];
 static u16 device_on[MAX_DEVICE_COUNT];
 
-static u8 txo_mode[MAX_TXO_VOICE_COUNT];
-static u16 er301_volume[MAX_ER301_VOICE_COUNT];
-static u16 jf_volume[MAX_JF_VOICE_COUNT];
-static u16 txo_volume[MAX_TXO_VOICE_COUNT];
+static u8 txo_mode[MAX_TXO_OUTPUT_COUNT];
+static u16 er301_max_volume[MAX_ER301_OUTPUT_COUNT];
+static u16 jf_max_volume[MAX_JF_OUTPUT_COUNT];
+static u16 txo_max_volume[MAX_TXO_OUTPUT_COUNT];
+static u16 disting_ex_max_volume[MAX_DISTING_EX_OUTPUT_COUNT];
+static u16 ex_midi_1_max_volume[MAX_EX_MIDI_1_OUTPUT_COUNT];
+static u16 ex_midi_ch_max_volume[MAX_EX_MIDI_CH_OUTPUT_COUNT];
+
 static s16 cv_transpose[MAX_CV_COUNT];
-static s16 er301_transpose[MAX_ER301_VOICE_COUNT];
-static s16 jf_transpose[MAX_JF_VOICE_COUNT];
-static s16 txo_transpose[MAX_TXO_VOICE_COUNT];
+static s16 er301_transpose[MAX_ER301_OUTPUT_COUNT];
+static s16 jf_transpose[MAX_JF_OUTPUT_COUNT];
+static s16 txo_transpose[MAX_TXO_OUTPUT_COUNT];
+static s16 disting_ex_transpose[MAX_DISTING_EX_OUTPUT_COUNT];
+static s16 ex_midi_1_transpose[MAX_EX_MIDI_1_OUTPUT_COUNT];
+static s16 ex_midi_ch_transpose[MAX_EX_MIDI_CH_OUTPUT_COUNT];
 
 static u8 is_i2c_leader;
 static u8 i2c_follower_address;
@@ -248,6 +261,10 @@ static void _set_txo_cv(u8 output, s16 value);
 static void _set_txo_gate(u8 output, u8 on);
 static void _send_txo_note(u8 output, s16 pitch, u16 volume);
 static int16_t _get_txi_value(u8 index, bool shift);
+
+static void _send_disting_ex_note(u8 output, s16 pitch, u16 volume);
+static void _send_ex_midi_1_note(u8 output, s16 pitch, u16 volume);
+static void _send_ex_midi_ch_note(u8 output, s16 pitch, u16 volume);
 
 static int _i2c_leader_tx(uint8_t addr, uint8_t *data, uint8_t length);
 static int _i2c_leader_rx(uint8_t addr, uint8_t *data, uint8_t length);
@@ -523,6 +540,21 @@ void note_on_v(u8 voice, s16 pitch, u16 volume) {
             _set_txo_cv(output, pitch);
             _set_txo_gate(output, 1);
         }
+
+    for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
+        if (_is_voice_mapped(voice, VOICE_DISTING_EX, output)) {
+            _send_disting_ex_note(output, pitch, volume);
+        }
+
+    for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
+        if (_is_voice_mapped(voice, VOICE_EX_MIDI_1, output)) {
+            _send_ex_midi_1_note(output, pitch, volume);
+        }
+
+    for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
+        if (_is_voice_mapped(voice, VOICE_EX_MIDI_CH, output)) {
+            _send_ex_midi_ch_note(output, pitch, volume);
+        }
 }
 
 void note_off(u8 voice) {
@@ -547,6 +579,21 @@ void note_off(u8 voice) {
     for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
         if (_is_voice_mapped(voice, VOICE_TXO_CV_GATE, output))
             _set_txo_gate(output, 0);
+
+    for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
+        if (_is_voice_mapped(voice, VOICE_DISTING_EX, output)) {
+            _send_disting_ex_note(output, 0, 0);
+        }
+
+    for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
+        if (_is_voice_mapped(voice, VOICE_EX_MIDI_1, output)) {
+            _send_ex_midi_1_note(output, 0, 0);
+        }
+
+    for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
+        if (_is_voice_mapped(voice, VOICE_EX_MIDI_CH, output)) {
+            _send_ex_midi_ch_note(output, 0, 0);
+        }
 }
 
 void map_voice(u8 voice, u8 device, u8 output, u8 on) {
@@ -566,21 +613,33 @@ void set_output_transpose_v(u8 device, u16 output, s16 pitch) {
     if (device == VOICE_CV_GATE) {
         if (output < MAX_CV_COUNT) cv_transpose[output] = pitch;
     } else if (device == VOICE_ER301) {
-        if (output < MAX_ER301_VOICE_COUNT) er301_transpose[output] = pitch;
+        if (output < MAX_ER301_OUTPUT_COUNT) er301_transpose[output] = pitch;
     } else if (device == VOICE_JF) {
-        if (output < MAX_JF_VOICE_COUNT) jf_transpose[output] = pitch;
+        if (output < MAX_JF_OUTPUT_COUNT) jf_transpose[output] = pitch;
     } else if (device == VOICE_TXO_CV_GATE || device == VOICE_TXO_NOTE) {
-        if (output < MAX_TXO_VOICE_COUNT) txo_transpose[output] = pitch;
+        if (output < MAX_TXO_OUTPUT_COUNT) txo_transpose[output] = pitch;
+    } else if (device == VOICE_DISTING_EX) {
+        if (output < MAX_DISTING_EX_OUTPUT_COUNT) disting_ex_transpose[output] = pitch;
+    } else if (device == VOICE_EX_MIDI_1) {
+        if (output < MAX_EX_MIDI_1_OUTPUT_COUNT) ex_midi_1_transpose[output] = pitch;
+    } else if (device == VOICE_EX_MIDI_CH) {
+        if (output < MAX_EX_MIDI_CH_OUTPUT_COUNT) ex_midi_ch_transpose[output] = pitch;
     }
 }
 
 void set_output_max_volume(u8 device, u16 output, u16 volume) {
     if (device == VOICE_ER301) {
-        if (output < MAX_ER301_VOICE_COUNT) er301_volume[output] = volume;
+        if (output < MAX_ER301_OUTPUT_COUNT) er301_max_volume[output] = volume;
     } else if (device == VOICE_JF) {
-        if (output < MAX_JF_VOICE_COUNT) jf_volume[output] = volume;
+        if (output < MAX_JF_OUTPUT_COUNT) jf_max_volume[output] = volume;
     } else if (device == VOICE_TXO_NOTE) {
-        if (output < MAX_TXO_VOICE_COUNT) txo_volume[output] = volume;
+        if (output < MAX_TXO_OUTPUT_COUNT) txo_max_volume[output] = volume;
+    } else if (device == VOICE_DISTING_EX) {
+        if (output < MAX_DISTING_EX_OUTPUT_COUNT) disting_ex_max_volume[output] = volume;
+    } else if (device == VOICE_EX_MIDI_1) {
+        if (output < MAX_EX_MIDI_1_OUTPUT_COUNT) ex_midi_1_max_volume[output] = volume;
+    } else if (device == VOICE_EX_MIDI_CH) {
+        if (output < MAX_EX_MIDI_CH_OUTPUT_COUNT) ex_midi_ch_max_volume[output] = volume;
     }
 }
 
@@ -629,19 +688,19 @@ void set_txo_gate(u8 output, u8 on) {
 }
 
 void set_txo_attack(u8 output, u16 attack) {
-    if (output >= MAX_TXO_VOICE_COUNT) return;
+    if (output >= MAX_TXO_OUTPUT_COUNT) return;
     txo_refresh[output].attack = attack;
     txo_refresh[output].attack_dirty = 1;
 }
 
 void set_txo_decay(u8 output, u16 decay) {
-    if (output >= MAX_TXO_VOICE_COUNT) return;
+    if (output >= MAX_TXO_OUTPUT_COUNT) return;
     txo_refresh[output].decay = decay;
     txo_refresh[output].decay_dirty = 1;
 }
 
 void set_txo_waveform(u8 output, u16 waveform) {
-    if (output >= MAX_TXO_VOICE_COUNT) return;
+    if (output >= MAX_TXO_OUTPUT_COUNT) return;
     txo_refresh[output].waveform = waveform;
     txo_refresh[output].waveform_dirty = 1;
 }
@@ -842,13 +901,13 @@ void _set_i2c_mode(u8 leader) {
 }
 
 void _send_er301_note(u8 output, s16 pitch, u16 volume) {
-    if (output >= MAX_ER301_VOICE_COUNT) return;
+    if (output >= MAX_ER301_OUTPUT_COUNT) return;
     if (volume) {
-        u32 vol = (u32)volume * (u32)er301_volume[output] / MAX_LEVEL;
+        u32 vol = (u32)volume * (u32)er301_max_volume[output] / MAX_LEVEL;
         pitch += er301_transpose[output] - 3277;
         _set_er301_cv(output, pitch);
          // using 2nd set for volume
-        _set_er301_cv(output + MAX_ER301_VOICE_COUNT, vol);
+        _set_er301_cv(output + MAX_ER301_OUTPUT_COUNT, vol);
         _set_er301_gate(output, 1);
     } else {
         _set_er301_gate(output, 0);
@@ -856,14 +915,14 @@ void _send_er301_note(u8 output, s16 pitch, u16 volume) {
 }
 
 void _set_er301_cv(u8 output, s16 value) {
-    if (output >= MAX_ER301_OUTPUT_COUNT) return;
+    if (output >= MAX_ER301_COUNT) return;
     
     u8 d[] = { TO_CV_SET, output, (u16)value >> 8, value & 0xff };
     _i2c_leader_tx(ER301_1, d, 4);
 }
 
 void _set_er301_gate(u8 output, u8 on) {
-    if (output >= MAX_ER301_OUTPUT_COUNT) return;
+    if (output >= MAX_ER301_COUNT) return;
     
     u8 d[] = { TO_TR, output, 0, on & 1 };
     _i2c_leader_tx(ER301_1, d, 4);
@@ -883,9 +942,9 @@ void _set_jf_mode(u8 mode) {
 }
 
 void _send_jf_note(u8 output, s16 pitch, u16 volume) {
-    if (output >= MAX_JF_VOICE_COUNT) return;
+    if (output >= MAX_JF_OUTPUT_COUNT) return;
 
-    u32 vol = (u32)volume * (u32)jf_volume[output] / MAX_LEVEL;
+    u32 vol = (u32)volume * (u32)jf_max_volume[output] / MAX_LEVEL;
     pitch += jf_transpose[output] - 3277;
     u8 d[] = { JF_VOX, output + 1, (u16)pitch >> 8, pitch & 0xff, (u16)vol >> 8, vol & 0xff };
     _i2c_leader_tx(JF_ADDR, d, 6);
@@ -896,7 +955,7 @@ void _send_jf_note(u8 output, s16 pitch, u16 volume) {
 }
 
 void _set_jf_gate(u8 output, u8 on) {
-    if (output >= MAX_JF_VOICE_COUNT) return;
+    if (output >= MAX_JF_OUTPUT_COUNT) return;
     
     uint8_t d[] = { JF_TR, output + 1, on & 1 };
     _i2c_leader_tx(JF_ADDR, d, 3);
@@ -904,7 +963,7 @@ void _set_jf_gate(u8 output, u8 on) {
 
 // all txo comm should be done through this as it safeguards
 void _send_txo_command(u8 output, u8 command, s16 value) {
-    if (output >= MAX_TXO_VOICE_COUNT) return;
+    if (output >= MAX_TXO_OUTPUT_COUNT) return;
     
     u8 address = TELEXO + (output >> 2);
     u8 port = output & 0b11;
@@ -914,7 +973,7 @@ void _send_txo_command(u8 output, u8 command, s16 value) {
 }
 
 void _set_txo_mode(u8 output, u8 mode) {
-    if (output >= MAX_TXO_VOICE_COUNT) return;
+    if (output >= MAX_TXO_OUTPUT_COUNT) return;
     // if (txo_mode[output] == mode) return;
     
     if (mode) {
@@ -927,11 +986,11 @@ void _set_txo_mode(u8 output, u8 mode) {
 }
 
 void _send_txo_note(u8 output, s16 pitch, u16 volume) {
-    if (output >= MAX_TXO_VOICE_COUNT) return;
+    if (output >= MAX_TXO_OUTPUT_COUNT) return;
     _set_txo_mode(output, 1);
     
     if (volume) {
-        u32 vol = (u32)volume * (u32)txo_volume[output] / MAX_LEVEL;
+        u32 vol = (u32)volume * (u32)txo_max_volume[output] / MAX_LEVEL;
         pitch += txo_transpose[output] + 4915;
         _send_txo_command(output, TO_OSC_SET, pitch);
         _send_txo_command(output, TO_CV_SET, vol);
@@ -949,7 +1008,7 @@ void _set_txo_cv(u8 output, s16 value) {
 }
 
 void _set_txo_gate(u8 output, u8 on) {
-    if (output >= MAX_TXO_VOICE_COUNT) return;
+    if (output >= MAX_TXO_OUTPUT_COUNT) return;
     
     _send_txo_command(output, TO_ENV, 0);
     _send_txo_command(output, TO_TR, on & 1);
@@ -983,6 +1042,44 @@ uint16_t get_txi_param(uint8_t param) {
     return _get_txi_value(param, false) << 2;
 }
 
+void _send_disting_ex_note(output, pitch, volume) {
+    if (output >= MAX_DISTING_EX_OUTPUT_COUNT) return;
+
+    u32 vol = (u32)volume * (u32)disting_ex_max_volume[output] / MAX_LEVEL;
+    pitch += disting_ex_transpose[output] - 3277;
+    
+    u8 address = DISTING_EX_1 + (output >> 3);
+    u8 voice = output & 7; // 8 voices per disting device
+    
+    u8 d_note_off[] = { 0x53 };
+    _i2c_leader_tx(address, d_note_off, 1);
+    
+    u8 d_pitch[] = { 0x51, (u16)pitch >> 8, pitch & 0xff };
+    _i2c_leader_tx(address, d_pitch, 3);
+    
+    u8 d_note_on[] = { 0x52, (u16)vol >> 8, vol & 0xff  };
+    _i2c_leader_tx(address, d_note_on, 3);
+}
+
+void _send_ex_midi_1_note(output, pitch, volume) {
+    if (output >= MAX_EX_MIDI_1_OUTPUT_COUNT) return;
+
+    u32 vol = (u32)volume * (u32)ex_midi_1_max_volume[output] / MAX_LEVEL;
+    pitch += ex_midi_1_transpose[output] - 3277;
+    
+    u8 address = DISTING_EX_1 + (output >> 3);
+    u8 voice = output & 7; // 8 voices per disting device
+}
+
+void _send_ex_midi_ch_note(output, pitch, volume) {
+    if (output >= MAX_EX_MIDI_CH_OUTPUT_COUNT) return;
+
+    u32 vol = (u32)volume * (u32)ex_midi_ch_max_volume[output] / MAX_LEVEL;
+    pitch += ex_midi_ch_transpose[output] - 3277;
+    
+    u8 address = DISTING_EX_1 + (output >> 3);
+    u8 voice = output & 7; // 8 voices per disting device
+}
 
 // ----------------------------------------------------------------------------
 // input handlers
@@ -1379,7 +1476,7 @@ static void process_i2c(uint8_t *data, uint8_t length) {
 
 static void refresh_i2c(void) {
     u8 updated = 0;
-    for (u8 i = 0; i < MAX_TXO_VOICE_COUNT; i++) {
+    for (u8 i = 0; i < MAX_TXO_OUTPUT_COUNT; i++) {
         if (txo_refresh[i].attack_dirty) {
             _send_txo_command(i, TO_ENV_ATT, txo_refresh[i].attack);
             txo_refresh[i].attack_dirty = 0;
@@ -1538,19 +1635,19 @@ static void init_state(void) {
     
     for (u8 i = 0; i < MAX_DEVICE_COUNT; i++) device_on[i] = 1;
     
-    for (u8 i = 0; i < MAX_TXO_VOICE_COUNT; i++) txo_mode[i] = 2;
-    for (u8 i = 0; i < MAX_ER301_VOICE_COUNT; i++) er301_volume[i] = MAX_LEVEL;
-    for (u8 i = 0; i < MAX_JF_VOICE_COUNT; i++) jf_volume[i] = MAX_LEVEL;
-    for (u8 i = 0; i < MAX_TXO_VOICE_COUNT; i++) txo_volume[i] = MAX_LEVEL;
+    for (u8 i = 0; i < MAX_TXO_OUTPUT_COUNT; i++) txo_mode[i] = 2;
+    for (u8 i = 0; i < MAX_ER301_OUTPUT_COUNT; i++) er301_max_volume[i] = MAX_LEVEL;
+    for (u8 i = 0; i < MAX_JF_OUTPUT_COUNT; i++) jf_max_volume[i] = MAX_LEVEL;
+    for (u8 i = 0; i < MAX_TXO_OUTPUT_COUNT; i++) txo_max_volume[i] = MAX_LEVEL;
     
     for (u8 i = 0; i < MAX_CV_COUNT; i++) cv_transpose[i] = 0;
-    for (u8 i = 0; i < MAX_ER301_VOICE_COUNT; i++) er301_transpose[i] = 0;
-    for (u8 i = 0; i < MAX_JF_VOICE_COUNT; i++) jf_transpose[i] = 0;
-    for (u8 i = 0; i < MAX_TXO_VOICE_COUNT; i++) txo_transpose[i] = 0;
+    for (u8 i = 0; i < MAX_ER301_OUTPUT_COUNT; i++) er301_transpose[i] = 0;
+    for (u8 i = 0; i < MAX_JF_OUTPUT_COUNT; i++) jf_transpose[i] = 0;
+    for (u8 i = 0; i < MAX_TXO_OUTPUT_COUNT; i++) txo_transpose[i] = 0;
 
     // txo refresh
     
-    for (u8 i = 0; i < MAX_TXO_VOICE_COUNT; i++) {
+    for (u8 i = 0; i < MAX_TXO_OUTPUT_COUNT; i++) {
         txo_refresh[i].attack_dirty = 0;
         txo_refresh[i].decay_dirty = 0;
         txo_refresh[i].waveform_dirty = 0;
