@@ -1057,7 +1057,7 @@ void _send_disting_ex_note(u8 output, s16 pitch, u16 volume) {
     u8 d_pitch[] = { 0x51, voice, (u16)pitch >> 8, pitch & 0xff };
     _i2c_leader_tx(address, d_pitch, 4);
     
-    u8 d_note_on[] = { 0x52, voice, (u16)vol >> 8, vol & 0xff  };
+    u8 d_note_on[] = { 0x52, voice, (u16)vol >> 8, vol & 0xff };
     _i2c_leader_tx(address, d_note_on, 4);
 }
 
@@ -1639,11 +1639,17 @@ static void init_state(void) {
     for (u8 i = 0; i < MAX_ER301_OUTPUT_COUNT; i++) er301_max_volume[i] = MAX_LEVEL;
     for (u8 i = 0; i < MAX_JF_OUTPUT_COUNT; i++) jf_max_volume[i] = MAX_LEVEL;
     for (u8 i = 0; i < MAX_TXO_OUTPUT_COUNT; i++) txo_max_volume[i] = MAX_LEVEL;
+    for (u8 i = 0; i < MAX_DISTING_EX_OUTPUT_COUNT; i++) disting_ex_max_volume[i] = MAX_LEVEL;
+    for (u8 i = 0; i < MAX_EX_MIDI_1_OUTPUT_COUNT; i++) ex_midi_1_max_volume[i] = MAX_LEVEL;
+    for (u8 i = 0; i < MAX_EX_MIDI_CH_OUTPUT_COUNT; i++) ex_midi_ch_max_volume[i] = MAX_LEVEL;
     
     for (u8 i = 0; i < MAX_CV_COUNT; i++) cv_transpose[i] = 0;
     for (u8 i = 0; i < MAX_ER301_OUTPUT_COUNT; i++) er301_transpose[i] = 0;
     for (u8 i = 0; i < MAX_JF_OUTPUT_COUNT; i++) jf_transpose[i] = 0;
     for (u8 i = 0; i < MAX_TXO_OUTPUT_COUNT; i++) txo_transpose[i] = 0;
+    for (u8 i = 0; i < MAX_DISTING_EX_OUTPUT_COUNT; i++) disting_ex_transpose[i] = 0;
+    for (u8 i = 0; i < MAX_EX_MIDI_1_OUTPUT_COUNT; i++) ex_midi_1_transpose[i] = 0;
+    for (u8 i = 0; i < MAX_EX_MIDI_CH_OUTPUT_COUNT; i++) ex_midi_ch_transpose[i] = 0;
 
     // txo refresh
     
