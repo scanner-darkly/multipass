@@ -1083,10 +1083,10 @@ void _send_ex_midi_1_note(u8 output, s16 pitch, u16 volume) {
     
     if (vol) {
         u8 d_note[] = { 0x4F, 0x90, note, (u16)vol >> 7 };
-        _i2c_leader_tx(address, d_note, 4);
+        _i2c_leader_tx(DISTING_EX_1, d_note, 4);
     } else {
         u8 d_note[] = { 0x4F, 0x80, note, 0 };
-        _i2c_leader_tx(address, d_note, 4);
+        _i2c_leader_tx(DISTING_EX_1, d_note, 4);
     }
 }
 
@@ -1099,10 +1099,10 @@ void _send_ex_midi_ch_note(u8 output, s16 pitch, u16 volume) {
     
     if (vol) {
         u8 d_note[] = { 0x4F, 0x90 + output, note, (u16)vol >> 7 };
-        _i2c_leader_tx(address, d_note, 4);
+        _i2c_leader_tx(DISTING_EX_1, d_note, 4);
     } else {
         u8 d_note[] = { 0x4F, 0x80 + output, note, 0 };
-        _i2c_leader_tx(address, d_note, 4);
+        _i2c_leader_tx(DISTING_EX_1, d_note, 4);
     }
 }
 
