@@ -1727,7 +1727,7 @@ static void init_state(void) {
         map_voice(i, VOICE_CV_GATE, i, 1);
     
     for (u8 i = 0; i < MAX_VOICES_COUNT; i++)
-        last_note[i] = 0;
+        last_pitch[i] = 0;
 
     // devices 
     
