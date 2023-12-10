@@ -13,15 +13,17 @@
 // ----------------------------------------------------------------------------
 // voice mapping
 
-#define VOICE_CV_GATE     0 /**< Voice mapping identifier for internal Monome hardware CV/Gate output pair */
-#define VOICE_ER301       1 /**< Voice mapping identifier for the [Orthogonal Devices ER-301](http://www.orthogonaldevices.com/er-301) */
-#define VOICE_JF          2 /**< Voice mapping identifier for the [Mannequins Just Friends](https://www.whimsicalraps.com/products/just-friends) */
-#define VOICE_TXO_NOTE    3 /**< Voice mapping identifier for the [bpcmusic TELEXo](https://github.com/bpcmusic/telex) in sound mode */
-#define VOICE_TXO_CV_GATE 4 /**< Voice mapping identifier for the [bpcmusic TELEXo](https://github.com/bpcmusic/telex) CV/Gate mode */
-#define VOICE_DISTING_EX  5 /**< Voice mapping identifier for the [Expert Sleepers disting EX](https://www.expert-sleepers.co.uk/distingEX.html) note mode */
-#define VOICE_EX_MIDI_1   6 /**< Voice mapping identifier for the [Expert Sleepers disting EX](https://www.expert-sleepers.co.uk/distingEX.html) MIDI mode */
-#define VOICE_EX_MIDI_CH  7 /**< Voice mapping identifier for the [Expert Sleepers disting EX](https://www.expert-sleepers.co.uk/distingEX.html) multi channel MIDI mode */
-#define MAX_DEVICE_COUNT  8 /**< Number of voice mappable devices */
+#define VOICE_CV_GATE      0 /**< Voice mapping identifier for internal Monome hardware CV/Gate output pair */
+#define VOICE_ER301        1 /**< Voice mapping identifier for the [Orthogonal Devices ER-301](http://www.orthogonaldevices.com/er-301) */
+#define VOICE_JF           2 /**< Voice mapping identifier for the [Mannequins Just Friends](https://www.whimsicalraps.com/products/just-friends) */
+#define VOICE_TXO_NOTE     3 /**< Voice mapping identifier for the [bpcmusic TELEXo](https://github.com/bpcmusic/telex) in sound mode */
+#define VOICE_TXO_CV_GATE  4 /**< Voice mapping identifier for the [bpcmusic TELEXo](https://github.com/bpcmusic/telex) CV/Gate mode */
+#define VOICE_DISTING_EX   5 /**< Voice mapping identifier for the [Expert Sleepers disting EX](https://www.expert-sleepers.co.uk/distingEX.html) note mode */
+#define VOICE_EX_MIDI_1    6 /**< Voice mapping identifier for the [Expert Sleepers disting EX](https://www.expert-sleepers.co.uk/distingEX.html) MIDI mode */
+#define VOICE_EX_MIDI_CH   7 /**< Voice mapping identifier for the [Expert Sleepers disting EX](https://www.expert-sleepers.co.uk/distingEX.html) multi channel MIDI mode */
+#define VOICE_I2C2MIDI_1   8 /**< Voice mapping identifier for the [attowatt i2c2midi](https://github.com/attowatt/i2c2midi) MIDI mode */
+#define VOICE_I2C2MIDI_CH  9 /**< Voice mapping identifier for the [attowatt i2c2midi](https://github.com/attowatt/i2c2midi) multi channel MIDI mode */
+#define MAX_DEVICE_COUNT  10 /**< Number of voice mappable devices */
 
 
 // ----------------------------------------------------------------------------
