@@ -91,8 +91,6 @@
 #define SCREEN_LINE_COUNT 8
 #define MAX_EVENT_DATA_LENGTH 16
 
-#define ET_NOTE_COUNT 128 // ET is defined in music.h
-
 #define MAX_VOICES_COUNT 32 // max number of voices available for voice mapping
 #define MAX_OUTPUT_COUNT 8 // max number of device outputs that can be assigned to the same voice
 
@@ -102,6 +100,8 @@
 #define MAX_DISTING_EX_OUTPUT_COUNT 32 // up to 4 devices x 8 voices each
 #define MAX_EX_MIDI_1_OUTPUT_COUNT 16 // up to 16 "outputs" for 1 channel MIDI mode
 #define MAX_EX_MIDI_CH_OUTPUT_COUNT 16 // up to 16 MIDI channels for multi channel MIDI mode
+#define MAX_I2C2MIDI_1_OUTPUT_COUNT 16 // up to 16 "outputs" for 1 channel MIDI mode
+#define MAX_I2C2MIDI_CH_OUTPUT_COUNT 16 // up to 16 MIDI channels for multi channel MIDI mode
 
 #define MAX_ER301_COUNT 100
 #define MAX_TXI_COUNT 16
@@ -114,6 +114,8 @@
 #define TO_ENV_ATT 0x61
 #define TO_ENV_DEC 0x64
 #define TO_OSC_WAVE 0x4A
+
+#define I2C2MIDI 0x3F
 
 
 // ----------------------------------------------------------------------------
@@ -202,6 +204,8 @@ static u16 txo_max_volume[MAX_TXO_OUTPUT_COUNT];
 static u16 disting_ex_max_volume[MAX_DISTING_EX_OUTPUT_COUNT];
 static u16 ex_midi_1_max_volume[MAX_EX_MIDI_1_OUTPUT_COUNT];
 static u16 ex_midi_ch_max_volume[MAX_EX_MIDI_CH_OUTPUT_COUNT];
+static u16 i2c2midi_1_max_volume[MAX_I2C2MIDI_1_OUTPUT_COUNT];
+static u16 i2c2midi_ch_max_volume[MAX_I2C2MIDI_CH_OUTPUT_COUNT];
 
 static s16 cv_transpose[MAX_CV_COUNT];
 static s16 er301_transpose[MAX_ER301_OUTPUT_COUNT];
@@ -210,10 +214,14 @@ static s16 txo_transpose[MAX_TXO_OUTPUT_COUNT];
 static s16 disting_ex_transpose[MAX_DISTING_EX_OUTPUT_COUNT];
 static s16 ex_midi_1_transpose[MAX_EX_MIDI_1_OUTPUT_COUNT];
 static s16 ex_midi_ch_transpose[MAX_EX_MIDI_CH_OUTPUT_COUNT];
+static s16 i2c2midi_1_transpose[MAX_I2C2MIDI_1_OUTPUT_COUNT];
+static s16 i2c2midi_ch_transpose[MAX_I2C2MIDI_CH_OUTPUT_COUNT];
 
 static u8 is_i2c_leader;
 static u8 i2c_follower_address;
 static u8 jf_mode;
+
+static s16 last_pitch[MAX_VOICES_COUNT];
 
 // NVRAM data structure located in the flash array
 // preset_data is defined in control.h
@@ -265,6 +273,9 @@ static int16_t _get_txi_value(u8 index, bool shift);
 static void _send_disting_ex_note(u8 output, s16 pitch, u16 volume);
 static void _send_ex_midi_1_note(u8 output, s16 pitch, u16 volume);
 static void _send_ex_midi_ch_note(u8 output, s16 pitch, u16 volume);
+
+static void _send_i2c2midi_1_note(u8 output, s16 pitch, u16 volume);
+static void _send_i2c2midi_ch_note(u8 output, s16 pitch, u16 volume);
 
 static int _i2c_leader_tx(uint8_t addr, uint8_t *data, uint8_t length);
 static int _i2c_leader_rx(uint8_t addr, uint8_t *data, uint8_t length);
@@ -488,8 +499,15 @@ u8 is_midi_connected() {
 // notes
 
 u16 note_to_pitch(u16 note) {
-    if (note >= ET_NOTE_COUNT) return ET[ET_NOTE_COUNT - 1];
-    return ET[note];
+    u32 pitch = ((u32)note * 16384) / 60;
+    pitch = (pitch > 1) + (pitch & 1);
+    return pitch;
+}
+
+u16 pitch_to_note(u16 pitch) {
+    u32 note = ((s32)pitch * 120) / 8192;
+    note = (note > 1) + (note & 1);
+    return note;
 }
 
 static u8 _is_voice_mapped(u8 voice, u8 device, u8 output) {
@@ -511,12 +529,13 @@ void note_v(u8 voice, s16 pitch, u16 volume, u8 on) {
 }
 
 void note_on(u8 voice, u16 note, u16 volume) {
-    if (note >= ET_NOTE_COUNT) return;
-    note_on_v(voice, ET[note], volume);
+    note_on_v(voice, note_to_pitch(note), volume);
 }
 
 void note_on_v(u8 voice, s16 pitch, u16 volume) {
     if (voice >= MAX_VOICES_COUNT) return;
+    
+    last_pitch[voice] = pitch;
 
     for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
         if (_is_voice_mapped(voice, VOICE_CV_GATE, output))
@@ -555,6 +574,16 @@ void note_on_v(u8 voice, s16 pitch, u16 volume) {
         if (_is_voice_mapped(voice, VOICE_EX_MIDI_CH, output)) {
             _send_ex_midi_ch_note(output, pitch, volume);
         }
+
+    for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
+        if (_is_voice_mapped(voice, VOICE_I2C2MIDI_1, output)) {
+            _send_i2c2midi_1_note(output, pitch, volume);
+        }
+
+    for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
+        if (_is_voice_mapped(voice, VOICE_I2C2MIDI_CH, output)) {
+            _send_i2c2midi_ch_note(output, pitch, volume);
+        }
 }
 
 void note_off(u8 voice) {
@@ -562,19 +591,19 @@ void note_off(u8 voice) {
 
     for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
         if (_is_voice_mapped(voice, VOICE_CV_GATE, output))
-            _send_note(output, 0, 0);
+            _send_note(output, last_pitch[voice], 0);
         
     for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
         if (_is_voice_mapped(voice, VOICE_ER301, output))
-            _send_er301_note(output, 0, 0);
+            _send_er301_note(output, last_pitch[voice], 0);
         
     for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
         if (_is_voice_mapped(voice, VOICE_JF, output))
-            _send_jf_note(output, 0, 0);
+            _send_jf_note(output, last_pitch[voice], 0);
         
     for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
         if (_is_voice_mapped(voice, VOICE_TXO_NOTE, output))
-            _send_txo_note(output, 0, 0);
+            _send_txo_note(output, last_pitch[voice], 0);
         
     for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
         if (_is_voice_mapped(voice, VOICE_TXO_CV_GATE, output))
@@ -582,17 +611,27 @@ void note_off(u8 voice) {
 
     for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
         if (_is_voice_mapped(voice, VOICE_DISTING_EX, output)) {
-            _send_disting_ex_note(output, 0, 0);
+            _send_disting_ex_note(output, last_pitch[voice], 0);
         }
 
     for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
         if (_is_voice_mapped(voice, VOICE_EX_MIDI_1, output)) {
-            _send_ex_midi_1_note(output, 0, 0);
+            _send_ex_midi_1_note(output, last_pitch[voice], 0);
         }
 
     for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
         if (_is_voice_mapped(voice, VOICE_EX_MIDI_CH, output)) {
-            _send_ex_midi_ch_note(output, 0, 0);
+            _send_ex_midi_ch_note(output, last_pitch[voice], 0);
+        }
+
+    for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
+        if (_is_voice_mapped(voice, VOICE_I2C2MIDI_1, output)) {
+            _send_i2c2midi_1_note(output, last_pitch[voice], 0);
+        }
+
+    for (u8 output = 0; output < MAX_OUTPUT_COUNT; output++)
+        if (_is_voice_mapped(voice, VOICE_I2C2MIDI_CH, output)) {
+            _send_i2c2midi_ch_note(output, last_pitch[voice], 0);
         }
 }
 
@@ -605,8 +644,7 @@ void map_voice(u8 voice, u8 device, u8 output, u8 on) {
 }
 
 void set_output_transpose(u8 device, u16 output, u16 note) {
-    if (note >= ET_NOTE_COUNT) return;
-    set_output_transpose_v(device, output, ET[note]);
+    set_output_transpose_v(device, output, note_to_pitch(note));
 }
 
 void set_output_transpose_v(u8 device, u16 output, s16 pitch) {
@@ -624,6 +662,10 @@ void set_output_transpose_v(u8 device, u16 output, s16 pitch) {
         if (output < MAX_EX_MIDI_1_OUTPUT_COUNT) ex_midi_1_transpose[output] = pitch;
     } else if (device == VOICE_EX_MIDI_CH) {
         if (output < MAX_EX_MIDI_CH_OUTPUT_COUNT) ex_midi_ch_transpose[output] = pitch;
+    } else if (device == VOICE_I2C2MIDI_1) {
+        if (output < MAX_I2C2MIDI_1_OUTPUT_COUNT) i2c2midi_1_transpose[output] = pitch;
+    } else if (device == VOICE_I2C2MIDI_CH) {
+        if (output < MAX_I2C2MIDI_CH_OUTPUT_COUNT) i2c2midi_ch_transpose[output] = pitch;
     }
 }
 
@@ -640,6 +682,10 @@ void set_output_max_volume(u8 device, u16 output, u16 volume) {
         if (output < MAX_EX_MIDI_1_OUTPUT_COUNT) ex_midi_1_max_volume[output] = volume;
     } else if (device == VOICE_EX_MIDI_CH) {
         if (output < MAX_EX_MIDI_CH_OUTPUT_COUNT) ex_midi_ch_max_volume[output] = volume;
+    } else if (device == VOICE_I2C2MIDI_1) {
+        if (output < MAX_I2C2MIDI_1_OUTPUT_COUNT) i2c2midi_1_max_volume[output] = volume;
+    } else if (device == VOICE_I2C2MIDI_CH) {
+        if (output < MAX_I2C2MIDI_CH_OUTPUT_COUNT) i2c2midi_ch_max_volume[output] = volume;
     }
 }
 
@@ -1042,25 +1088,17 @@ uint16_t get_txi_param(uint8_t param) {
     return _get_txi_value(param, false) << 2;
 }
 
-static u8 calculate_note(s16 pitch) {
-    s32 note = (((s32)pitch * 240) / 16384);
-    note = note / 2 + (note & 1) + 48;
-    if (note < 0)
-        note = 0;
-    else if (note > 127)
-        note = 127;
-    return (u8)note;
-}
-
 void _send_disting_ex_note(u8 output, s16 pitch, u16 volume) {
     if (output >= MAX_DISTING_EX_OUTPUT_COUNT) return;
 
     u32 vol = (u32)volume * (u32)disting_ex_max_volume[output] / MAX_LEVEL;
     pitch += disting_ex_transpose[output] - 3277;
-    u8 note = calculate_note(pitch);
+    u8 note = pitch_to_note(pitch) + 48;
+    if (note > 127) note = 127;
     
+    // 8 channels per disting device
     u8 address = DISTING_EX_1 + (output >> 3);
-    u8 channel = output & 7; // 8 channels per disting device
+    u8 channel = output & 7;
     
     u8 d_note_off[] = { 0x6A, channel, note };
     _i2c_leader_tx(address, d_note_off, 3);
@@ -1078,8 +1116,8 @@ void _send_ex_midi_1_note(u8 output, s16 pitch, u16 volume) {
     if (output >= MAX_EX_MIDI_1_OUTPUT_COUNT) return;
 
     u32 vol = (u32)volume * (u32)ex_midi_1_max_volume[output] / MAX_LEVEL;
-    pitch += ex_midi_1_transpose[output] - 3277;
-    u8 note = calculate_note(pitch);
+    pitch += ex_midi_1_transpose[output];
+    u8 note = pitch_to_note(pitch);
     
     if (vol) {
         u8 d_note[] = { 0x4F, 0x90, note, (u16)vol >> 7 };
@@ -1094,8 +1132,8 @@ void _send_ex_midi_ch_note(u8 output, s16 pitch, u16 volume) {
     if (output >= MAX_EX_MIDI_CH_OUTPUT_COUNT) return;
 
     u32 vol = (u32)volume * (u32)ex_midi_ch_max_volume[output] / MAX_LEVEL;
-    pitch += ex_midi_ch_transpose[output] - 3277;
-    u8 note = calculate_note(pitch);
+    pitch += ex_midi_ch_transpose[output];
+    u8 note = pitch_to_note(pitch);
     
     if (vol) {
         u8 d_note[] = { 0x4F, 0x90 + output, note, (u16)vol >> 7 };
@@ -1103,6 +1141,38 @@ void _send_ex_midi_ch_note(u8 output, s16 pitch, u16 volume) {
     } else {
         u8 d_note[] = { 0x4F, 0x80 + output, note, 0 };
         _i2c_leader_tx(DISTING_EX_1, d_note, 4);
+    }
+}
+
+void _send_i2c2midi_1_note(u8 output, s16 pitch, u16 volume) {
+    if (output >= MAX_EX_MIDI_1_OUTPUT_COUNT) return;
+
+    u32 vol = (u32)volume * (u32)ex_midi_1_max_volume[output] / MAX_LEVEL;
+    pitch += ex_midi_1_transpose[output];
+    u8 note = pitch_to_note(pitch);
+    
+    if (vol) {
+        u8 d_note[] = { 20, 0, note, (u16)vol >> 7 };
+        _i2c_leader_tx(I2C2MIDI, d_note, 4);
+    } else {
+        u8 d_note[] = { 21, 0, note };
+        _i2c_leader_tx(I2C2MIDI, d_note, 3);
+    }
+}
+
+void _send_i2c2midi_ch_note(u8 output, s16 pitch, u16 volume) {
+    if (output >= MAX_EX_MIDI_CH_OUTPUT_COUNT) return;
+
+    u32 vol = (u32)volume * (u32)ex_midi_ch_max_volume[output] / MAX_LEVEL;
+    pitch += ex_midi_ch_transpose[output];
+    u8 note = pitch_to_note(pitch);
+    
+    if (vol) {
+        u8 d_note[] = { 20, output, note, (u16)vol >> 7 };
+        _i2c_leader_tx(I2C2MIDI, d_note, 4);
+    } else {
+        u8 d_note[] = { 21, output, note };
+        _i2c_leader_tx(I2C2MIDI, d_note, 3);
     }
 }
 
@@ -1655,6 +1725,9 @@ static void init_state(void) {
                 
     for (u8 i = 0; i < max(_HARDWARE_CV_OUTPUT_COUNT, _HARDWARE_GATE_OUTPUT_COUNT); i++)
         map_voice(i, VOICE_CV_GATE, i, 1);
+    
+    for (u8 i = 0; i < MAX_VOICES_COUNT; i++)
+        last_note[i] = 0;
 
     // devices 
     
@@ -1667,6 +1740,8 @@ static void init_state(void) {
     for (u8 i = 0; i < MAX_DISTING_EX_OUTPUT_COUNT; i++) disting_ex_max_volume[i] = MAX_LEVEL;
     for (u8 i = 0; i < MAX_EX_MIDI_1_OUTPUT_COUNT; i++) ex_midi_1_max_volume[i] = MAX_LEVEL;
     for (u8 i = 0; i < MAX_EX_MIDI_CH_OUTPUT_COUNT; i++) ex_midi_ch_max_volume[i] = MAX_LEVEL;
+    for (u8 i = 0; i < MAX_I2C2MIDI_1_OUTPUT_COUNT; i++) i2c2midi_1_max_volume[i] = MAX_LEVEL;
+    for (u8 i = 0; i < MAX_I2C2MIDI_CH_OUTPUT_COUNT; i++) i2c2midi_ch_max_volume[i] = MAX_LEVEL;
     
     for (u8 i = 0; i < MAX_CV_COUNT; i++) cv_transpose[i] = 0;
     for (u8 i = 0; i < MAX_ER301_OUTPUT_COUNT; i++) er301_transpose[i] = 0;
@@ -1675,6 +1750,8 @@ static void init_state(void) {
     for (u8 i = 0; i < MAX_DISTING_EX_OUTPUT_COUNT; i++) disting_ex_transpose[i] = 0;
     for (u8 i = 0; i < MAX_EX_MIDI_1_OUTPUT_COUNT; i++) ex_midi_1_transpose[i] = 0;
     for (u8 i = 0; i < MAX_EX_MIDI_CH_OUTPUT_COUNT; i++) ex_midi_ch_transpose[i] = 0;
+    for (u8 i = 0; i < MAX_I2C2MIDI_1_OUTPUT_COUNT; i++) i2c2midi_1_transpose[i] = 0;
+    for (u8 i = 0; i < MAX_I2C2MIDI_CH_OUTPUT_COUNT; i++) i2c2midi_ch_transpose[i] = 0;
 
     // txo refresh
     
