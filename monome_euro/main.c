@@ -505,7 +505,7 @@ u16 note_to_pitch(u16 note) {
 }
 
 u16 pitch_to_note(u16 pitch) {
-    u32 note = ((s32)pitch * 120) / 8192;
+    u32 note = ((s32)pitch * 240) / 16384;
     note = (note > 1) + (note & 1);
     return note;
 }
@@ -1148,7 +1148,7 @@ void _send_i2c2midi_1_note(u8 output, s16 pitch, u16 volume) {
     if (output >= MAX_EX_MIDI_1_OUTPUT_COUNT) return;
 
     u32 vol = (u32)volume * (u32)ex_midi_1_max_volume[output] / MAX_LEVEL;
-    pitch += ex_midi_1_transpose[output];
+    pitch += i2c2midi_1_transpose[output];
     u8 note = pitch_to_note(pitch);
     
     if (vol) {
@@ -1164,7 +1164,7 @@ void _send_i2c2midi_ch_note(u8 output, s16 pitch, u16 volume) {
     if (output >= MAX_EX_MIDI_CH_OUTPUT_COUNT) return;
 
     u32 vol = (u32)volume * (u32)ex_midi_ch_max_volume[output] / MAX_LEVEL;
-    pitch += ex_midi_ch_transpose[output];
+    pitch += i2c2midi_ch_transpose[output];
     u8 note = pitch_to_note(pitch);
     
     if (vol) {
