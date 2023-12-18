@@ -1120,10 +1120,10 @@ void _send_ex_midi_1_note(u8 output, s16 pitch, u16 volume) {
     u8 note = pitch_to_note(pitch);
     
     if (vol) {
-        u8 d_note[] = { 0x4F, 0x90, note, (u16)vol >> 7 };
+        u8 d_note[] = { 0x4F, 0x90, output + 10, (u16)vol >> 7 };
         _i2c_leader_tx(DISTING_EX_1, d_note, 4);
     } else {
-        u8 d_note[] = { 0x4F, 0x80, note, 0 };
+        u8 d_note[] = { 0x4F, 0x80, output + 20, 0 };
         _i2c_leader_tx(DISTING_EX_1, d_note, 4);
     }
 }
