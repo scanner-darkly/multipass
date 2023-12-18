@@ -500,13 +500,13 @@ u8 is_midi_connected() {
 
 u16 note_to_pitch(u16 note) {
     u32 pitch = ((u32)note * 16384) / 60;
-    pitch = (pitch > 1) + (pitch & 1);
+    pitch = (pitch >> 1) + (pitch & 1);
     return pitch;
 }
 
 u16 pitch_to_note(u16 pitch) {
     u32 note = ((s32)pitch * 240) / 16384;
-    note = (note > 1) + (note & 1);
+    note = (note >> 1) + (note & 1);
     return note;
 }
 
@@ -1152,10 +1152,10 @@ void _send_i2c2midi_1_note(u8 output, s16 pitch, u16 volume) {
     u8 note = pitch_to_note(pitch);
     
     if (vol) {
-        u8 d_note[] = { 20, 0, output + 10, (u16)vol >> 7 };
+        u8 d_note[] = { 20, 0, note, (u16)vol >> 7 };
         _i2c_leader_tx(I2C2MIDI, d_note, 4);
     } else {
-        u8 d_note[] = { 21, 0, output + 20 };
+        u8 d_note[] = { 21, 0, note };
         _i2c_leader_tx(I2C2MIDI, d_note, 3);
     }
 }
