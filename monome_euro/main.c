@@ -1092,23 +1092,20 @@ void _send_disting_ex_note(u8 output, s16 pitch, u16 volume) {
     if (output >= MAX_DISTING_EX_OUTPUT_COUNT) return;
 
     u32 vol = (u32)volume * (u32)disting_ex_max_volume[output] / MAX_LEVEL;
-    pitch += disting_ex_transpose[output] - 3277;
-    u8 note = pitch_to_note(pitch) + 48;
-    if (note > 127) note = 127;
+    pitch += disting_ex_transpose[output];
     
-    // 8 channels per disting device
     u8 address = DISTING_EX_1 + (output >> 3);
-    u8 channel = output & 7;
+    u8 voice = output & 7; // 8 voices per disting device
     
-    u8 d_note_off[] = { 0x6A, channel, note };
-    _i2c_leader_tx(address, d_note_off, 3);
+    u8 d_note_off[] = { 0x53, voice };
+    _i2c_leader_tx(address, d_note_off, 2);
     
     if (vol) {
-        u8 d_pitch[] = { 0x68, channel, note, (u16)pitch >> 8, pitch & 0xff };
-        _i2c_leader_tx(address, d_pitch, 5);
-        
-        u8 d_note_on[] = { 0x69, channel, note, (u16)vol >> 8, vol & 0xff };
-        _i2c_leader_tx(address, d_note_on, 5);
+        u8 d_pitch[] = { 0x51, voice, (u16)pitch >> 8, pitch & 0xff };
+        _i2c_leader_tx(address, d_pitch, 4);
+     
+        u8 d_note_on[] = { 0x52, voice, (u16)vol >> 8, vol & 0xff };
+        _i2c_leader_tx(address, d_note_on, 4);
     }
 }
 
