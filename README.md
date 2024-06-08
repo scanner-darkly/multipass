@@ -20,21 +20,18 @@ in short, it allows you to easily create your own applications without having to
 
 # building firmware
 
-there are 3 main options: 
-
-### local toolchain
-
-you will likely want to set up the toolchain locally so you can easily make and test changes. this option will require most work to set it up but it will save you time down the road. follow the instructions here: https://github.com/denravonska/avr32-toolchain
-
-additional information is available here: https://github.com/monome/libavr32 and here: https://github.com/monome/teletype
-
-please note that some of the instructions are out of date (atmel doesn't provide headers anymore), so adjust accordingly.
-
-**important**: if you want to build for a different module make sure to remove all `*.o` files first.
+there are 3 main options - for local dev i highly recommend using the docker option as it's the easiest to set up and use.
 
 ### docker option
 
 if you run into any issues with the above option and can't figure them out, try using this docker image instead: https://github.com/Dewb/monome-build
+
+to build using this option:
+
+- open CMD
+- navigate to the root folder of your firmware
+- run `del /s /q *.d,*.o`
+- run `docker run -v %CD%:/target -t dewb/monome-build "cd multipass/monome_euro/ansible; make"` (replace "ansible" with whatever version you want to build)
 
 ### github actions
 
@@ -53,6 +50,16 @@ there are 2 workflows currently provided: `build firmware` and `upload release`.
 `upload release` is triggered automatically when you create a new release. it will build firmware for each specified module and upload both hex and zip versions to your release as assets. **important**: unlike the previous action, this action will reference the commit the release tag is pointing to, not the latest commit!
 
 both workflows will use the name of your repo for firmware files, if you prefer a different name simply modify the workflow templates.
+
+### local toolchain
+
+you will likely want to set up the toolchain locally so you can easily make and test changes. this option will require most work to set it up but it will save you time down the road. follow the instructions here: https://github.com/denravonska/avr32-toolchain
+
+additional information is available here: https://github.com/monome/libavr32 and here: https://github.com/monome/teletype
+
+please note that some of the instructions are out of date (atmel doesn't provide headers anymore), so adjust accordingly.
+
+**important**: if you want to build for a different module make sure to remove all `*.o` files first.
 
 # architecture
 
