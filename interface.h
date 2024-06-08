@@ -353,6 +353,19 @@ uint8_t is_midi_connected(void);
 uint16_t note_to_pitch(uint16_t note);
 
 /**
+ * @brief Convenience function used to convert the hardware output CV pitch
+ *        value to a note (equal temper tuning) value from 0-127.
+ * 
+ * @param pitch The number that maps to 1v/octave CV on a 14bit DAC with a 10v
+ *        range.
+ * 
+ * @return uint16_t Returns the equal temper tuning value between 0-127.
+ * 
+ * @see music.c/h in libavr32 library for reference
+ */
+uint16_t pitch_to_note(uint16_t pitch);
+
+/**
  * @brief Send a chromatic note, volume, and on/off state to the mapped voice
  *        number
  * 
