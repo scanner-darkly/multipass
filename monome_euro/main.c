@@ -991,7 +991,7 @@ void _send_jf_note(u8 output, s16 pitch, u16 volume) {
     if (output >= MAX_JF_OUTPUT_COUNT) return;
 
     u32 vol = (u32)volume * (u32)jf_max_volume[output] / MAX_LEVEL;
-    pitch += jf_transpose[output] - 3277;
+    pitch += jf_transpose[output] - 1638;
     u8 d[] = { JF_VOX, output + 1, (u16)pitch >> 8, pitch & 0xff, (u16)vol >> 8, vol & 0xff };
     _i2c_leader_tx(JF_ADDR, d, 6);
     
