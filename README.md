@@ -30,8 +30,13 @@ to build using this option:
 
 - open CMD
 - navigate to the root folder of your firmware
-- run `del /s /q *.d,*.o`
-- run `docker run -v %CD%:/target -t dewb/monome-build "cd multipass/monome_euro/ansible; make"` (replace "ansible" with whatever version you want to build)
+- run:
+```
+del /s /q *.d,*.o
+cd monome-euro
+docker run -v %CD%:/target -t dewb/monome-build "cd multipass/monome_euro/ansible; make"
+```
+(replace "ansible" with whatever version you want to build)
 
 ### github actions
 
