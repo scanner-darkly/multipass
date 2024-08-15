@@ -14,7 +14,7 @@ in short, it allows you to easily create your own applications without having to
 - execute `git submodule update --init --recursive`
 - create `src` folder and copy files from `multipass/src_template`
 - set up one of the ways to build firmware (see below)
-- navigate to `multipass/monome_euro` and then the desired module directory and run `make`
+- build firmware
 - if everything was set up properly, a firmware hex file will be generated
 - now build your own app! see the [architecture section](#architecture) below and check out the [wiki](https://github.com/scanner-darkly/multipass/wiki)
 
@@ -33,7 +33,6 @@ to build using this option:
 - run:
 ```
 del /s /q *.d,*.o
-cd monome-euro
 docker run -v %CD%:/target -t dewb/monome-build "cd multipass/monome_euro/ansible; make"
 ```
 (replace "ansible" with whatever version you want to build)
