@@ -281,6 +281,9 @@ static int _i2c_leader_tx(uint8_t addr, uint8_t *data, uint8_t length);
 static int _i2c_leader_rx(uint8_t addr, uint8_t *data, uint8_t length);
 static void _set_i2c_mode(u8 leader);
 
+static void empty_event_handlers(void);
+static inline void assign_main_event_handlers(void);
+
 
 // ----------------------------------------------------------------------------
 // helper functions
@@ -1380,6 +1383,20 @@ static void handler_monome_ring_enc(s32 data) {
 
 
 // ----------------------------------------------------------------------------
+// usb handler
+
+static void handler_msc_connect(s32 data) {
+    empty_event_handlers();
+    u8 flags = irqs_pause();
+    
+    usb_stick();
+    
+    assign_main_event_handlers();
+    irqs_resume(flags);
+}
+
+
+// ----------------------------------------------------------------------------
 // midi handlers
 
 static void handler_midi_connect(s32 data) {
@@ -1592,9 +1609,14 @@ static void refresh_i2c(void) {
 // ----------------------------------------------------------------------------
 // init / main
 
-static inline void assign_main_event_handlers(void) {
-    for (u16 i = 0; i < kNumEventTypes; i++)
+void empty_event_handlers() {
+    for (size_t i = 0; i < kNumEventTypes; i++) {
         app_event_handlers[i] = &handler_none;
+    }
+}
+
+void assign_main_event_handlers(void) {
+    empty_event_handlers();
     
     app_event_handlers[kEventFront]            = &handler_front;
     app_event_handlers[kEventClockNormal]      = &handler_clock_normal;
@@ -1606,6 +1628,7 @@ static inline void assign_main_event_handlers(void) {
     app_event_handlers[kEventFtdiDisconnect]   = &handler_ftdi_disconnect;
     app_event_handlers[kEventSerialConnect]    = &handler_serial_connect;
     app_event_handlers[kEventSerialDisconnect] = &handler_ftdi_disconnect;
+    app_event_handlers[kEventMscConnect]       = &handler_msc_connect;
 
     app_event_handlers[kEventMonomeConnect]    = &handler_monome_connect;
     app_event_handlers[kEventMonomeDisconnect] = &handler_none;

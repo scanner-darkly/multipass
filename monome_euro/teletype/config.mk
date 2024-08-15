@@ -159,6 +159,8 @@ INC_PATH = \
        common/services/delay                              \
        common/services/usb/                               \
        common/services/usb/uhc                            \
+       common/services/clock                              \
+       common/services/storage/ctrl_access                \
        common/services/usb/class/msc                      \
        common/services/usb/class/msc/host                 \
        common/services/usb/class/hid                      \
