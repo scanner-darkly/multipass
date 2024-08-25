@@ -62,8 +62,8 @@ TARGET = $(THIS).elf
 
 # List of C source files.
 CSRCS = \
+       $(wildcard ../../../src/*.c)        \
        ../main.c                           \
-       ../../../src/*.c                    \
        ../libavr32/src/adc.c               \
        ../libavr32/src/dac.c               \
        ../libavr32/src/events.c            \
