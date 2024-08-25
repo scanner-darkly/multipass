@@ -16,6 +16,18 @@
 #include "interface.h"
 #include "engine.h"
 
+/* uncomment to implement usb load/save
+#include <ctype.h>
+#include "delay.h"
+#include "uhi_msc.h"
+#include "fat.h"
+#include "file.h"
+#include "fs_com.h"
+#include "navigation.h"
+#include "usb_protocol_msc.h"
+#include "uhi_msc_mem.h"
+*/
+
 preset_meta_t meta;
 preset_data_t preset;
 shared_data_t shared;
@@ -127,3 +139,7 @@ void render_arc(void) {
     // render arc LEDs here or leave blank if not used
 }
 
+void usb_stick(void) {
+    // called when a USB stick is inserted
+    // implement USB load/save here
+}

@@ -126,6 +126,11 @@ void render_grid(void);
  */
 void render_arc(void);
 
+/**
+ * @brief Implement USB loading/saving code here. If you don't use it, leave
+ *        this function blank.
+ */
+void usb_stick(void);
 
 // ----------------------------------------------------------------------------
 // functions engine needs to call
